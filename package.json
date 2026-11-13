@@ -3,7 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "serve": "npx --yes serve@14.2.4 app"
+    "serve": "node scripts/serve.mjs",
+    "serve:npx": "npx --yes serve@14.2.4 app",
+    "stamp": "node scripts/stamp.mjs",
+    "verify": "node scripts/verify.mjs",
+    "record": "node scripts/record.mjs"
   },
   "devDependencies": {
     "playwright": "1.64.1"

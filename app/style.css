@@ -9,3 +9,77 @@ h1 { margin: 0; font-size: 22px; }
 .row.sev2 .sev { color: #a15c00; }
 .row time { color: #555; font-variant-numeric: tabular-nums; }
 footer { color: #777; font-size: 13px; }
+
+/* R3: the loader stands until the first incidents answer lands. */
+.loader { color: #666; }
+
+/* plan hook: what shows when there are no incidents. */
+.empty { color: #666; }
+
+/* The board refreshes on its own (R4); the dot says so. The CSS animation also keeps the
+   page painting every second, which is what holds a Playwright screencast in real time. */
+.live {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: #22a06b;
+  animation: live 2s steps(1, end) infinite;
+}
+@keyframes live {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.2; }
+}
+
+.status { margin: 6px 0 0; font-size: 13px; color: #666; font-variant-numeric: tabular-nums; }
+.status.fresh { color: #0b62a4; }
+.status.ok { color: #16794a; }
+.status.bad { color: #b00020; }
+
+/* R2: Ack per row, then the acked mark holding the receipt. */
+.ack {
+  font: inherit;
+  padding: 6px 14px;
+  border: 1px solid #0b62a4;
+  border-radius: 6px;
+  background: #fff;
+  color: #0b62a4;
+  cursor: pointer;
+}
+.ack:hover { background: #eef6fc; }
+.ack:disabled { opacity: 0.6; cursor: default; }
+.acked {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #e7f6ee;
+  color: #16794a;
+  font-weight: 600;
+}
+.row.is-acked { background: #fbfffc; }
+
+/* R1: a row that just arrived is briefly lit, so a live board reads as live. */
+.row.arrived { animation: arrived 1.2s ease-out 1; }
+@keyframes arrived {
+  from { background: #fff3cf; }
+  to { background: #fff; }
+}
+
+/* Every ack's receipt stays on the page, so a recording carries the proof with it. */
+.receipts { margin-top: 28px; max-width: 960px; }
+.receipts h2 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #888;
+}
+.receipts ul { list-style: none; margin: 0; padding: 0; }
+.receipt {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  color: #444;
+  word-break: break-all;
+  padding: 2px 0;
+}

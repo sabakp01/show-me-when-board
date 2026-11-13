@@ -3,18 +3,33 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- R6: the page names its build. stamp.mjs (and the deploy workflow) fill both places. -->
+    <meta name="build" content="{{BUILD_SHA}}" />
     <title>sched-prod · incidents</title>
     <link rel="stylesheet" href="style.css" />
     <script type="module" src="app.js"></script>
   </head>
   <body>
     <header>
-      <h1>incidents</h1>
-      <p class="sub">sched-prod · tonight</p>
+      <h1>
+        incidents
+        <span class="live" title="refreshes on its own every 2s" aria-hidden="true"></span>
+      </h1>
+      <p class="sub">sched-prod · tonight · newest first</p>
+      <p class="status" id="status" role="status" aria-live="polite">connecting…</p>
     </header>
     <main data-testid="board">
+      <!-- R3: loader until the first incidents answer lands -->
+      <p data-testid="loader" class="loader" role="status">loading incidents…</p>
       <ul data-testid="incident-list" class="list"></ul>
+      <p data-testid="empty" class="empty" hidden>No incidents tonight.</p>
+      <section class="receipts" id="receipt-log" aria-label="ack receipts">
+        <h2>ack receipts</h2>
+        <ul id="receipt-list"></ul>
+      </section>
     </main>
-    <footer>sched-prod incident board</footer>
+    <footer>
+      sched-prod incident board · build <span data-testid="build-sha">{{BUILD_SHA}}</span>
+    </footer>
   </body>
 </html>
