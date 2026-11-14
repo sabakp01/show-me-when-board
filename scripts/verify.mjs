@@ -168,8 +168,9 @@ try {
           `const li = document.querySelector('[data-testid="incident-row"][data-id="${target}"]');
            const b = li && li.querySelector('[data-testid="confirm-ack"]');
            if (!b) return null;
+           const label = b.textContent; // read it before the click: the handler rewrites the label as it sends
            if (!b.disabled) b.click();
-           return b.textContent;`,
+           return label;`,
           5000,
           `the confirm-ack button on ${target}`,
         );
