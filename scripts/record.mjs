@@ -10,7 +10,7 @@
 // `at` — the mm:ss mark inside the video where the state change is on screen. Nothing secret goes
 // into either file: the ack receipt is written as it appears on the page, which is the proof.
 import { spawn, spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { Firefox, find, sleep } from './browser.mjs';
 
@@ -81,6 +81,91 @@ async function grab(note) {
   return { name, ms };
 }
 
+// A person does not run `element.click()`. They look at the screen, move the pointer onto the button
+// and press it, while the page carries on changing around them. This presses Ack that way: the
+// button's own on-screen rectangle is read, the pointer travels to it in steps with the camera
+// running, it rests there long enough for the hover state to show, then the primary button goes
+// down and up. The board's own 2 s refresh keeps firing underneath.
+//
+// Whether the click that acked the row was a real one is not taken on trust from this script: the
+// page reports it (`isTrusted`), and a scripted click reports false. The listener is fitted when the
+// board opens, before anything is watched, so it cannot be chosen to fit the answer.
+function watchPointerEvents() {
+  return ff.js(`window.__takeEvents = []; window.__takeHovers = 0;
+    const testid = (el) => { const c = el && el.closest ? el.closest('[data-testid]') : null;
+      return c ? c.getAttribute('data-testid') : (el ? el.tagName : null); };
+    const stamp = () => new Date().toISOString();
+    document.addEventListener('pointerover', (e) => {
+      const b = e.target.closest ? e.target.closest('[data-testid="ack"]') : null;
+      if (!b) return;
+      window.__takeHovers++;
+      window.__takeEvents.push({ type: 'pointerover', trusted: e.isTrusted, x: Math.round(e.clientX), y: Math.round(e.clientY), target: 'ack', at: stamp() });
+    }, true);
+    document.addEventListener('pointerdown', (e) => {
+      window.__takeEvents.push({ type: 'pointerdown', trusted: e.isTrusted, x: Math.round(e.clientX), y: Math.round(e.clientY), target: testid(e.target), at: stamp() });
+    }, true);
+    document.addEventListener('click', (e) => {
+      window.__takeEvents.push({ type: 'click', trusted: e.isTrusted, detail: e.detail, x: Math.round(e.clientX), y: Math.round(e.clientY), target: testid(e.target), at: stamp() });
+    }, true);
+    return true;`);
+}
+
+async function pressAckLikeAPerson(id) {
+  const at = await ff.js(`const li = document.querySelector('[data-testid="incident-row"][data-id="${id}"]');
+    const b = li && li.querySelector('[data-testid="ack"]');
+    if (!b) return null;
+    const r = b.getBoundingClientRect();
+    return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2),
+             w: Math.round(r.width), h: Math.round(r.height) };`);
+  if (!at) return { ok: false, why: 'its row offered no Ack button' };
+
+  const vp = await ff.viewport();
+  if (at.y < 0 || at.y > vp.h || at.x < 0 || at.x > vp.w) {
+    // It is off screen: a person scrolls to it, so the recorder scrolls too — and says so.
+    await ff.wheel(at.y - Math.round(vp.h / 2), Math.round(vp.w / 2), Math.round(vp.h / 2));
+    await sleep(250);
+    return pressAckLikeAPerson(id); // the rect moved; read it again rather than aim at the old one
+  }
+
+  const stepNotes = [];
+  const step = async (label, x, y, kind) => { await grab(label); stepNotes.push({ kind, label, x, y, frame: take.frames.length }); };
+  const from = { x: Math.round(vp.w * 0.62), y: Math.min(vp.h - 24, at.y + 170) };
+  await ff.moveTo(from.x, from.y);
+  await step('pointer resting before the board', from.x, from.y, 'rest');
+  const moves = 4;
+  for (let s = 1; s <= moves; s++) {
+    const t = s / moves;
+    const x = Math.round(from.x + (at.x - from.x) * t);
+    const y = Math.round(from.y + (at.y - from.y) * t - 28 * Math.sin(Math.PI * t)); // a slight arc, like a hand
+    await ff.moveTo(x, y, 90);
+    await step(`pointer moving to the Ack of ${id}`, x, y, 'move');
+  }
+  await sleep(280); // a person looks before pressing; the hover state is on camera in this frame
+  await step(`pointer on the Ack of ${id} — the button shows hover`, at.x, at.y, 'hover');
+  const pressedAtMs = Date.now();
+  await ff.press(at.x, at.y);
+  await step(`primary button pressed and released on the Ack of ${id}`, at.x, at.y, 'press');
+
+  const page = await ff.js(`return { events: window.__takeEvents || [], hovers: window.__takeHovers || 0,
+    focus: document.activeElement && document.activeElement.getAttribute ? document.activeElement.getAttribute('data-testid') : null };`);
+  const hit = page.events.find((e) => e.type === 'click' && e.trusted && e.target === 'ack'
+    && Math.abs(e.x - at.x) <= Math.max(8, Math.round(at.w / 2))
+    && Math.abs(e.y - at.y) <= Math.max(8, Math.round(at.h / 2)));
+  const scripted = page.events.filter((e) => e.type === 'click' && !e.trusted).length;
+  take.pointer = {
+    how: `W3C pointer actions at the button's own screen rect (pointerMove x${moves} with the camera running, ~0.3 s hover, pointerDown/Up) — not element.click()`,
+    rect: at, viewport: vp, path: stepNotes, hoverEvents: page.hovers, focusAfter: page.focus,
+    at: new Date(pressedAtMs).toISOString(),
+  };
+  if (!hit) {
+    return { ok: false, why: page.events.length ? 'no trusted pointer click landed on that button' : 'the page reported no click event at all' };
+  }
+  return {
+    ok: true, at: new Date(pressedAtMs).toISOString(), trusted: true,
+    hovers: page.hovers, scriptedClicks: scripted, focus: page.focus, x: hit.x, y: hit.y,
+  };
+}
+
 const seen = new Set(); // incidents that were on screen last frame
 let firstAtMs = null;
 let clicked = null; // the incident this take acks
@@ -111,6 +196,7 @@ let got = null; // the incident the board actually shows acked, with a receipt i
 try {
   await ff.start();
   await ff.url(url);
+  await watchPointerEvents();
 
   for (let i = 0; i < maxFrames; i++) {
     if (!clicked && Date.now() > waitUntil) {
@@ -162,15 +248,21 @@ try {
             ageOnCameraS: Number(((Date.now() - Date.parse(fresh.openedAt)) / 1000).toFixed(1)),
           };
           take.landed = landed;
-          const clickedId = await ff.js(`const li = document.querySelector('[data-testid="incident-row"][data-id="${fresh.id}"]');
-            const b = li && li.querySelector('[data-testid="ack"]');
-            if (!b) return null; b.click(); return li.dataset.id;`);
-          if (clickedId) {
-            clicked = { id: clickedId, at: new Date().toISOString(), ageAtClickS: landed.ageOnCameraS };
+          const press = await pressAckLikeAPerson(fresh.id);
+          if (press.ok) {
+            // The honest age: from the incident opening to the button actually going down, which is a
+            // few seconds after the row first showed — the pointer had to travel to it.
+            const ageAtPress = Number(((Date.parse(press.at) - Date.parse(fresh.openedAt)) / 1000).toFixed(1));
+            clicked = {
+              id: fresh.id, at: press.at, ageAtClickS: ageAtPress, ageOnScreenS: landed.ageOnCameraS,
+              via: 'pointer', trusted: press.trusted, hoverEvents: press.hovers,
+              scriptedClicks: press.scriptedClicks, focusAfter: press.focus, clickXY: [press.x, press.y],
+            };
             take.acked = clicked;
-            note = `${fresh.id} landed on camera ${landed.ageOnCameraS}s after it opened — Ack pressed on it`;
+            note = `${fresh.id} opened ${landed.ageOnCameraS}s ago and landed on camera — the pointer moved onto its Ack and pressed it ${ageAtPress}s after it opened`;
           } else {
-            note = `${fresh.id} landed but its row offered no Ack button`;
+            note = `${fresh.id} landed, but ${press.why} — this take stops here`;
+            break;
           }
         }
       } else if (!changeFrame) {
@@ -249,9 +341,44 @@ if (font) {
   draw.push(`drawtext=fontfile=font.ttf:text='${label}':fontsize=22:fontcolor=white:x=14:y=h-44:box=1:boxcolor=black@0.55`);
 }
 const args = ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', 'frames/list.txt'];
+// A WebDriver screenshot carries no operating-system cursor, so the pointer the person moved is drawn
+// in here: a ring at the coordinates the recorder aimed at, held for the seconds that step lasted.
+// It is an overlay in the same way the timecode is, and the report says so — `take.pointer.path` holds
+// where and when, `take.pointer.rect` the button's own box on the screen.
+function pngSize(file) {
+  try {
+    const b = readFileSync(file);
+    if (b.length < 24 || b.readUInt32BE(0) !== 0x89504e47) return null;
+    return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+  } catch {
+    return null;
+  }
+}
+const marks = [];
+if (take.pointer && take.frames.length) {
+  const px = pngSize(resolve(framesDir, take.frames[0].name));
+  const vp = take.pointer.viewport;
+  if (px && vp && vp.w && vp.h) {
+    const fx = px.w / vp.w;
+    const fy = px.h / vp.h;
+    const sec = (step) => take.frames[step.frame - 1].elapsedS;
+    take.pointer.path.forEach((step, i) => {
+      const next = take.pointer.path[i + 1];
+      const until = next ? sec(next) : sec(step) + 0.45;
+      const size = step.kind === 'press' ? 46 : step.kind === 'hover' ? 30 : 14;
+      const colour = step.kind === 'press' ? 'red' : step.kind === 'hover' ? 'yellow' : 'cyan';
+      const X = Math.max(0, Math.round(step.x * fx - size / 2));
+      const Y = Math.max(0, Math.round(step.y * fy - size / 2));
+      marks.push(`drawbox=x=${X}:y=${Y}:w=${size}:h=${size}:color=${colour}@0.95:t=${step.kind === 'rest' ? 2 : 3}:enable='between(t,${sec(step).toFixed(2)},${until.toFixed(2)})'`);
+    });
+    if (font) {
+      draw.push(`drawtext=fontfile=font.ttf:text='ring = pointer at the button rect (overlay)':fontsize=18:fontcolor=white:x=w-470:y=16:box=1:boxcolor=black@0.55`);
+    }
+  }
+}
 // The browser's viewport can land on an odd height (Firefox full-page capture did: 1280x815), and
 // yuv420p needs even edges — so the frames are rounded down to even before anything is drawn on them.
-const filters = ['scale=trunc(iw/2)*2:trunc(ih/2)*2', ...draw];
+const filters = ['scale=trunc(iw/2)*2:trunc(ih/2)*2', ...marks, ...draw];
 if (filters.length) args.push('-vf', filters.join(','));
 args.push('-r', '30', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', 'take.mp4');
 ffmpegRun(args, 'cut', outDir); // frames, list and font all stay relative to the take folder
@@ -271,8 +398,17 @@ console.log(take.at ? `take: state change on screen at ${take.at} (${take.frames
 // other than one row carrying the new receipt is a FAIL, not a report.
 const oneRow = Array.isArray(take.got) && take.got.length === 1 && take.expected && take.got[0] === take.expected;
 console.log(`take: expected ${take.expected || 'none'}; got ${Array.isArray(take.got) ? take.got.join(', ') || 'none' : 'none'}`);
-const proofed = take.at && take.landed && take.acked && take.landed.id === take.expected && oneRow;
+// How the page was pressed matters as much as what was pressed: a scripted `element.click()` is a test
+// talking to the DOM. The page itself answered whether the click was a real pointer one.
+if (take.pointer) {
+  console.log(`take: pressed by pointer — ${take.pointer.how}`);
+  console.log(`take: page reports isTrusted=${take.acked ? take.acked.trusted : 'n/a'}, ${take.pointer.hoverEvents} pointerover on that button, ${take.acked ? take.acked.scriptedClicks : 0} scripted clicks in the page, focus after: ${take.pointer.focusAfter || 'none'}`);
+} else {
+  console.log('take: no pointer press in this take');
+}
+const pressedLikeAPerson = !!take.pointer && !!take.acked && take.acked.via === 'pointer' && take.acked.trusted === true;
+const proofed = take.at && take.landed && take.acked && take.landed.id === take.expected && oneRow && pressedLikeAPerson;
 console.log(proofed
   ? `result: ok`
-  : `result: FAIL — ${!take.landed ? 'no incident landed on camera in this take' : !oneRow ? 'the new receipt is not on exactly the row this take meant' : 'no ack visible on screen'}`);
+  : `result: FAIL — ${!take.landed ? 'no incident landed on camera in this take' : !pressedLikeAPerson ? 'the ack was not pressed by a real pointer click the page reports as trusted' : !oneRow ? 'the new receipt is not on exactly the row this take meant' : 'no ack visible on screen'}`);
 process.exit(proofed ? 0 : 1);

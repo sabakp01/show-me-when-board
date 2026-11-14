@@ -129,6 +129,51 @@ export class Firefox {
     return out;
   }
 
+  // --- real pointer input, W3C Actions ---------------------------------------
+  // `element.click()` from a script is what a test does. A person moves a pointer over the button
+  // and presses it, and the browser sends the pointer events that come with that. These calls send
+  // exactly those, at viewport coordinates in CSS pixels, so the page cannot tell the difference.
+  async actions(sequences) {
+    await call(this.port, 'POST', `/session/${this.sid}/actions`, { actions: sequences });
+    return call(this.port, 'DELETE', `/session/${this.sid}/actions`).catch(() => {});
+  }
+
+  pointer(steps) {
+    return this.actions([{ type: 'pointer', id: 'mouse', parameters: { pointerType: 'mouse' }, actions: steps }]);
+  }
+
+  // Move the pointer to a viewport point. A non-zero duration makes the browser deliver the moves
+  // along the way, so :hover states and pointerover events happen the way they do under a hand.
+  moveTo(x, y, ms = 0) {
+    return this.pointer([
+      { type: 'pointerMove', duration: ms, x: Math.round(x), y: Math.round(y), origin: 'viewport' },
+      { type: 'pause', duration: 16 },
+    ]);
+  }
+
+  // Press and release the primary button where the pointer stands. The move is part of the same
+  // sequence on purpose: geckodriver keeps no pointer position between action sequences, so a press
+  // that names no coordinates lands at (0,0) — the page then reports a trusted click on the header.
+  press(x, y, ms = 70) {
+    return this.pointer([
+      { type: 'pointerMove', duration: 0, x: Math.round(x), y: Math.round(y), origin: 'viewport' },
+      { type: 'pointerDown', button: 0 },
+      { type: 'pause', duration: ms },
+      { type: 'pointerUp', button: 0 },
+    ]);
+  }
+
+  wheel(deltaY, x, y, ms = 120) {
+    return this.actions([{
+      type: 'wheel', id: 'wheel',
+      actions: [{ type: 'scroll', x: Math.round(x), y: Math.round(y), deltaX: 0, deltaY: Math.round(deltaY), duration: ms }],
+    }]);
+  }
+
+  viewport() {
+    return this.js('return { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio };');
+  }
+
   // Waits until the script returns a truthy value, or throws once the budget runs out.
   async until(script, ms = 20000, what = script.slice(0, 60)) {
     const every = 250;
