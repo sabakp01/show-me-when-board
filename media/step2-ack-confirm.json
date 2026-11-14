@@ -1,0 +1,895 @@
+{
+  "flow": "ack-incident",
+  "url": "https://sabakp01.github.io/show-me-when-board/",
+  "fps": 5,
+  "startedAt": "2026-11-14T21:18:32.815Z",
+  "frames": [
+    {
+      "name": "frame-0001.png",
+      "at": "2026-11-14T21:18:34.965Z",
+      "ms": 1794691114965,
+      "note": "board opening",
+      "elapsedS": 0
+    },
+    {
+      "name": "frame-0002.png",
+      "at": "2026-11-14T21:18:35.971Z",
+      "ms": 1794691115971,
+      "note": "waiting for the board to answer",
+      "elapsedS": 1.01
+    },
+    {
+      "name": "frame-0003.png",
+      "at": "2026-11-14T21:18:36.979Z",
+      "ms": 1794691116979,
+      "note": "8 incidents on the board, none new yet — watching 1s of 240s",
+      "elapsedS": 2.01
+    },
+    {
+      "name": "frame-0004.png",
+      "at": "2026-11-14T21:18:37.983Z",
+      "ms": 1794691117983,
+      "note": "8 incidents on the board, none new yet — watching 2s of 240s",
+      "elapsedS": 3.02
+    },
+    {
+      "name": "frame-0005.png",
+      "at": "2026-11-14T21:18:38.983Z",
+      "ms": 1794691118983,
+      "note": "8 incidents on the board, none new yet — watching 3s of 240s",
+      "elapsedS": 4.02
+    },
+    {
+      "name": "frame-0006.png",
+      "at": "2026-11-14T21:18:39.991Z",
+      "ms": 1794691119991,
+      "note": "8 incidents on the board, none new yet — watching 4s of 240s",
+      "elapsedS": 5.03
+    },
+    {
+      "name": "frame-0007.png",
+      "at": "2026-11-14T21:18:40.991Z",
+      "ms": 1794691120991,
+      "note": "8 incidents on the board, none new yet — watching 5s of 240s",
+      "elapsedS": 6.03
+    },
+    {
+      "name": "frame-0008.png",
+      "at": "2026-11-14T21:18:41.991Z",
+      "ms": 1794691121991,
+      "note": "8 incidents on the board, none new yet — watching 6s of 240s",
+      "elapsedS": 7.03
+    },
+    {
+      "name": "frame-0009.png",
+      "at": "2026-11-14T21:18:42.992Z",
+      "ms": 1794691122992,
+      "note": "8 incidents on the board, none new yet — watching 7s of 240s",
+      "elapsedS": 8.03
+    },
+    {
+      "name": "frame-0010.png",
+      "at": "2026-11-14T21:18:43.014Z",
+      "ms": 1794691123014,
+      "note": "pointer where it already stood, mid-motion, at 666,255",
+      "elapsedS": 8.05
+    },
+    {
+      "name": "frame-0011.png",
+      "at": "2026-11-14T21:18:43.137Z",
+      "ms": 1794691123137,
+      "note": "pointer moving to the Ack of INC-4544",
+      "elapsedS": 8.17
+    },
+    {
+      "name": "frame-0012.png",
+      "at": "2026-11-14T21:18:43.261Z",
+      "ms": 1794691123261,
+      "note": "pointer moving to the Ack of INC-4544",
+      "elapsedS": 8.3
+    },
+    {
+      "name": "frame-0013.png",
+      "at": "2026-11-14T21:18:43.387Z",
+      "ms": 1794691123387,
+      "note": "pointer moving to the Ack of INC-4544",
+      "elapsedS": 8.42
+    },
+    {
+      "name": "frame-0014.png",
+      "at": "2026-11-14T21:18:43.508Z",
+      "ms": 1794691123508,
+      "note": "pointer on the Ack of INC-4544 — the button shows hover",
+      "elapsedS": 8.54
+    },
+    {
+      "name": "frame-0015.png",
+      "at": "2026-11-14T21:18:43.907Z",
+      "ms": 1794691123907,
+      "note": "primary button pressed and released on the Ack of INC-4544",
+      "elapsedS": 8.94
+    },
+    {
+      "name": "frame-0016.png",
+      "at": "2026-11-14T21:18:44.177Z",
+      "ms": 1794691124177,
+      "note": "the row a second after its Ack was pressed — the Ack is gone, an ask stands in its place",
+      "elapsedS": 9.21
+    },
+    {
+      "name": "frame-0017.png",
+      "at": "2026-11-14T21:18:44.359Z",
+      "ms": 1794691124359,
+      "note": "pointer on its way to the confirm-cancel of INC-4544",
+      "elapsedS": 9.39
+    },
+    {
+      "name": "frame-0018.png",
+      "at": "2026-11-14T21:18:44.502Z",
+      "ms": 1794691124502,
+      "note": "pointer on its way to the confirm-cancel of INC-4544",
+      "elapsedS": 9.54
+    },
+    {
+      "name": "frame-0019.png",
+      "at": "2026-11-14T21:18:44.655Z",
+      "ms": 1794691124655,
+      "note": "pointer on its way to the confirm-cancel of INC-4544",
+      "elapsedS": 9.69
+    },
+    {
+      "name": "frame-0020.png",
+      "at": "2026-11-14T21:18:45.023Z",
+      "ms": 1794691125023,
+      "note": "primary button down and up on confirm-cancel of INC-4544 at 942,136",
+      "elapsedS": 10.06
+    },
+    {
+      "name": "frame-0021.png",
+      "at": "2026-11-14T21:18:45.441Z",
+      "ms": 1794691125441,
+      "note": "INC-4544 after the cancel — its Ack is back and the row is not acked",
+      "elapsedS": 10.48
+    },
+    {
+      "name": "frame-0022.png",
+      "at": "2026-11-14T21:18:45.470Z",
+      "ms": 1794691125470,
+      "note": "pointer where it already stood, mid-motion, at 942,136",
+      "elapsedS": 10.51
+    },
+    {
+      "name": "frame-0023.png",
+      "at": "2026-11-14T21:18:45.593Z",
+      "ms": 1794691125593,
+      "note": "pointer moving to the Ack of INC-4544",
+      "elapsedS": 10.63
+    },
+    {
+      "name": "frame-0024.png",
+      "at": "2026-11-14T21:18:45.709Z",
+      "ms": 1794691125709,
+      "note": "pointer moving to the Ack of INC-4544",
+      "elapsedS": 10.74
+    },
+    {
+      "name": "frame-0025.png",
+      "at": "2026-11-14T21:18:45.824Z",
+      "ms": 1794691125824,
+      "note": "pointer moving to the Ack of INC-4544",
+      "elapsedS": 10.86
+    },
+    {
+      "name": "frame-0026.png",
+      "at": "2026-11-14T21:18:45.944Z",
+      "ms": 1794691125944,
+      "note": "pointer on the Ack of INC-4544 — the button shows hover",
+      "elapsedS": 10.98
+    },
+    {
+      "name": "frame-0027.png",
+      "at": "2026-11-14T21:18:46.325Z",
+      "ms": 1794691126325,
+      "note": "primary button pressed and released on the Ack of INC-4544",
+      "elapsedS": 11.36
+    },
+    {
+      "name": "frame-0028.png",
+      "at": "2026-11-14T21:18:46.605Z",
+      "ms": 1794691126605,
+      "note": "the ask standing open on INC-4544 once more: \"Ack INC-4544? auth · sev1 Ack INC-4544 Cancel\"",
+      "elapsedS": 11.64
+    },
+    {
+      "name": "frame-0029.png",
+      "at": "2026-11-14T21:18:46.792Z",
+      "ms": 1794691126792,
+      "note": "pointer on its way to the confirm-ack of INC-4544",
+      "elapsedS": 11.83
+    },
+    {
+      "name": "frame-0030.png",
+      "at": "2026-11-14T21:18:46.938Z",
+      "ms": 1794691126938,
+      "note": "pointer on its way to the confirm-ack of INC-4544",
+      "elapsedS": 11.97
+    },
+    {
+      "name": "frame-0031.png",
+      "at": "2026-11-14T21:18:47.093Z",
+      "ms": 1794691127093,
+      "note": "pointer on its way to the confirm-ack of INC-4544",
+      "elapsedS": 12.13
+    },
+    {
+      "name": "frame-0032.png",
+      "at": "2026-11-14T21:18:47.465Z",
+      "ms": 1794691127465,
+      "note": "primary button down and up on confirm-ack of INC-4544 at 852,136",
+      "elapsedS": 12.5
+    },
+    {
+      "name": "frame-0033.png",
+      "at": "2026-11-14T21:18:47.980Z",
+      "ms": 1794691127980,
+      "note": "INC-4544 half a second after its confirm-ack went down",
+      "elapsedS": 13.02
+    },
+    {
+      "name": "frame-0034.png",
+      "at": "2026-11-14T21:18:48.028Z",
+      "ms": 1794691128028,
+      "note": "INC-4544 opened -0.1s ago and landed on camera — the pointer moved onto its Ack and pressed it 0.5s after it opened",
+      "elapsedS": 13.06
+    },
+    {
+      "name": "frame-0035.png",
+      "at": "2026-11-14T21:18:48.233Z",
+      "ms": 1794691128233,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 13.27
+    },
+    {
+      "name": "frame-0036.png",
+      "at": "2026-11-14T21:18:48.438Z",
+      "ms": 1794691128439,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 13.47
+    },
+    {
+      "name": "frame-0037.png",
+      "at": "2026-11-14T21:18:48.644Z",
+      "ms": 1794691128644,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 13.68
+    },
+    {
+      "name": "frame-0038.png",
+      "at": "2026-11-14T21:18:48.850Z",
+      "ms": 1794691128850,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 13.88
+    },
+    {
+      "name": "frame-0039.png",
+      "at": "2026-11-14T21:18:49.053Z",
+      "ms": 1794691129053,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 14.09
+    },
+    {
+      "name": "frame-0040.png",
+      "at": "2026-11-14T21:18:49.259Z",
+      "ms": 1794691129259,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 14.29
+    },
+    {
+      "name": "frame-0041.png",
+      "at": "2026-11-14T21:18:49.462Z",
+      "ms": 1794691129462,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 14.5
+    },
+    {
+      "name": "frame-0042.png",
+      "at": "2026-11-14T21:18:49.668Z",
+      "ms": 1794691129668,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 14.7
+    },
+    {
+      "name": "frame-0043.png",
+      "at": "2026-11-14T21:18:49.873Z",
+      "ms": 1794691129873,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 14.91
+    },
+    {
+      "name": "frame-0044.png",
+      "at": "2026-11-14T21:18:50.079Z",
+      "ms": 1794691130079,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 15.11
+    },
+    {
+      "name": "frame-0045.png",
+      "at": "2026-11-14T21:18:50.285Z",
+      "ms": 1794691130285,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 15.32
+    },
+    {
+      "name": "frame-0046.png",
+      "at": "2026-11-14T21:18:50.493Z",
+      "ms": 1794691130493,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 15.53
+    },
+    {
+      "name": "frame-0047.png",
+      "at": "2026-11-14T21:18:50.696Z",
+      "ms": 1794691130696,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 15.73
+    },
+    {
+      "name": "frame-0048.png",
+      "at": "2026-11-14T21:18:50.899Z",
+      "ms": 1794691130899,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 15.93
+    },
+    {
+      "name": "frame-0049.png",
+      "at": "2026-11-14T21:18:51.103Z",
+      "ms": 1794691131103,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 16.14
+    },
+    {
+      "name": "frame-0050.png",
+      "at": "2026-11-14T21:18:51.308Z",
+      "ms": 1794691131308,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 16.34
+    },
+    {
+      "name": "frame-0051.png",
+      "at": "2026-11-14T21:18:51.514Z",
+      "ms": 1794691131514,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 16.55
+    },
+    {
+      "name": "frame-0052.png",
+      "at": "2026-11-14T21:18:51.720Z",
+      "ms": 1794691131720,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 16.75
+    },
+    {
+      "name": "frame-0053.png",
+      "at": "2026-11-14T21:18:51.927Z",
+      "ms": 1794691131927,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 16.96
+    },
+    {
+      "name": "frame-0054.png",
+      "at": "2026-11-14T21:18:52.132Z",
+      "ms": 1794691132132,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 17.17
+    },
+    {
+      "name": "frame-0055.png",
+      "at": "2026-11-14T21:18:52.339Z",
+      "ms": 1794691132339,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 17.37
+    },
+    {
+      "name": "frame-0056.png",
+      "at": "2026-11-14T21:18:52.545Z",
+      "ms": 1794691132545,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 17.58
+    },
+    {
+      "name": "frame-0057.png",
+      "at": "2026-11-14T21:18:52.751Z",
+      "ms": 1794691132751,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 17.79
+    },
+    {
+      "name": "frame-0058.png",
+      "at": "2026-11-14T21:18:52.956Z",
+      "ms": 1794691132956,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 17.99
+    },
+    {
+      "name": "frame-0059.png",
+      "at": "2026-11-14T21:18:53.161Z",
+      "ms": 1794691133161,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 18.2
+    },
+    {
+      "name": "frame-0060.png",
+      "at": "2026-11-14T21:18:53.366Z",
+      "ms": 1794691133366,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 18.4
+    },
+    {
+      "name": "frame-0061.png",
+      "at": "2026-11-14T21:18:53.570Z",
+      "ms": 1794691133570,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 18.61
+    },
+    {
+      "name": "frame-0062.png",
+      "at": "2026-11-14T21:18:53.776Z",
+      "ms": 1794691133776,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 18.81
+    },
+    {
+      "name": "frame-0063.png",
+      "at": "2026-11-14T21:18:53.982Z",
+      "ms": 1794691133982,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 19.02
+    },
+    {
+      "name": "frame-0064.png",
+      "at": "2026-11-14T21:18:54.186Z",
+      "ms": 1794691134186,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 19.22
+    },
+    {
+      "name": "frame-0065.png",
+      "at": "2026-11-14T21:18:54.392Z",
+      "ms": 1794691134392,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 19.43
+    },
+    {
+      "name": "frame-0066.png",
+      "at": "2026-11-14T21:18:54.596Z",
+      "ms": 1794691134596,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 19.63
+    },
+    {
+      "name": "frame-0067.png",
+      "at": "2026-11-14T21:18:54.799Z",
+      "ms": 1794691134799,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 19.83
+    },
+    {
+      "name": "frame-0068.png",
+      "at": "2026-11-14T21:18:55.002Z",
+      "ms": 1794691135002,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 20.04
+    },
+    {
+      "name": "frame-0069.png",
+      "at": "2026-11-14T21:18:55.204Z",
+      "ms": 1794691135204,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 20.24
+    },
+    {
+      "name": "frame-0070.png",
+      "at": "2026-11-14T21:18:55.408Z",
+      "ms": 1794691135408,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 20.44
+    },
+    {
+      "name": "frame-0071.png",
+      "at": "2026-11-14T21:18:55.612Z",
+      "ms": 1794691135612,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 20.65
+    },
+    {
+      "name": "frame-0072.png",
+      "at": "2026-11-14T21:18:55.817Z",
+      "ms": 1794691135817,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 20.85
+    },
+    {
+      "name": "frame-0073.png",
+      "at": "2026-11-14T21:18:56.019Z",
+      "ms": 1794691136019,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 21.05
+    },
+    {
+      "name": "frame-0074.png",
+      "at": "2026-11-14T21:18:56.222Z",
+      "ms": 1794691136222,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 21.26
+    },
+    {
+      "name": "frame-0075.png",
+      "at": "2026-11-14T21:18:56.427Z",
+      "ms": 1794691136427,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 21.46
+    },
+    {
+      "name": "frame-0076.png",
+      "at": "2026-11-14T21:18:56.630Z",
+      "ms": 1794691136630,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 21.66
+    },
+    {
+      "name": "frame-0077.png",
+      "at": "2026-11-14T21:18:56.832Z",
+      "ms": 1794691136832,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 21.87
+    },
+    {
+      "name": "frame-0078.png",
+      "at": "2026-11-14T21:18:57.033Z",
+      "ms": 1794691137033,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 22.07
+    },
+    {
+      "name": "frame-0079.png",
+      "at": "2026-11-14T21:18:57.238Z",
+      "ms": 1794691137238,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 22.27
+    },
+    {
+      "name": "frame-0080.png",
+      "at": "2026-11-14T21:18:57.441Z",
+      "ms": 1794691137441,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 22.48
+    },
+    {
+      "name": "frame-0081.png",
+      "at": "2026-11-14T21:18:57.644Z",
+      "ms": 1794691137644,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 22.68
+    },
+    {
+      "name": "frame-0082.png",
+      "at": "2026-11-14T21:18:57.845Z",
+      "ms": 1794691137845,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 22.88
+    },
+    {
+      "name": "frame-0083.png",
+      "at": "2026-11-14T21:18:58.051Z",
+      "ms": 1794691138051,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 23.09
+    },
+    {
+      "name": "frame-0084.png",
+      "at": "2026-11-14T21:18:58.254Z",
+      "ms": 1794691138254,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 23.29
+    },
+    {
+      "name": "frame-0085.png",
+      "at": "2026-11-14T21:18:58.457Z",
+      "ms": 1794691138457,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 23.49
+    },
+    {
+      "name": "frame-0086.png",
+      "at": "2026-11-14T21:18:58.660Z",
+      "ms": 1794691138660,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 23.7
+    },
+    {
+      "name": "frame-0087.png",
+      "at": "2026-11-14T21:18:58.864Z",
+      "ms": 1794691138864,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 23.9
+    },
+    {
+      "name": "frame-0088.png",
+      "at": "2026-11-14T21:18:59.067Z",
+      "ms": 1794691139067,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 24.1
+    },
+    {
+      "name": "frame-0089.png",
+      "at": "2026-11-14T21:18:59.269Z",
+      "ms": 1794691139269,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 24.3
+    },
+    {
+      "name": "frame-0090.png",
+      "at": "2026-11-14T21:18:59.473Z",
+      "ms": 1794691139473,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 24.51
+    },
+    {
+      "name": "frame-0091.png",
+      "at": "2026-11-14T21:18:59.677Z",
+      "ms": 1794691139677,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 24.71
+    },
+    {
+      "name": "frame-0092.png",
+      "at": "2026-11-14T21:18:59.880Z",
+      "ms": 1794691139880,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 24.91
+    },
+    {
+      "name": "frame-0093.png",
+      "at": "2026-11-14T21:19:00.084Z",
+      "ms": 1794691140084,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 25.12
+    },
+    {
+      "name": "frame-0094.png",
+      "at": "2026-11-14T21:19:00.287Z",
+      "ms": 1794691140287,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 25.32
+    },
+    {
+      "name": "frame-0095.png",
+      "at": "2026-11-14T21:19:00.492Z",
+      "ms": 1794691140492,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 25.53
+    },
+    {
+      "name": "frame-0096.png",
+      "at": "2026-11-14T21:19:00.693Z",
+      "ms": 1794691140693,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 25.73
+    },
+    {
+      "name": "frame-0097.png",
+      "at": "2026-11-14T21:19:00.897Z",
+      "ms": 1794691140897,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 25.93
+    },
+    {
+      "name": "frame-0098.png",
+      "at": "2026-11-14T21:19:01.111Z",
+      "ms": 1794691141111,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 26.15
+    },
+    {
+      "name": "frame-0099.png",
+      "at": "2026-11-14T21:19:01.311Z",
+      "ms": 1794691141311,
+      "note": "INC-4544 shows acked — the new receipt is on that row and on no other",
+      "elapsedS": 26.35
+    },
+    {
+      "name": "frame-0100.png",
+      "at": "2026-11-14T21:19:01.324Z",
+      "ms": 1794691141324,
+      "note": "end of take",
+      "elapsedS": 26.36
+    }
+  ],
+  "outDir": "C:\\Users\\admin\\Desktop\\course\\show-me-when\\.tmp\\take-confirm4",
+  "build": {
+    "footer": "13a362681697515b75e107f820bc53d00f21436b",
+    "meta": "13a362681697515b75e107f820bc53d00f21436b"
+  },
+  "landed": {
+    "id": "INC-4544",
+    "openedAt": "2026-11-14T21:18:43.112Z",
+    "frame": 9,
+    "onCameraAt": "2026-11-14T21:18:42.992Z",
+    "atMs": 1794691123009,
+    "ageOnCameraS": -0.1
+  },
+  "pointer": {
+    "how": "W3C pointer actions at the button's own screen rect: 4 pointerMove steps over 474 ms, then 381 ms resting on the button, then pointerDown/Up in one sequence — not element.click()",
+    "travelMs": 474,
+    "hoverMs": 381,
+    "moves": 4,
+    "rect": {
+      "h": 35,
+      "w": 54,
+      "x": 945,
+      "y": 136
+    },
+    "viewport": {
+      "dpr": 1,
+      "h": 815,
+      "w": 1280
+    },
+    "path": [
+      {
+        "kind": "rest",
+        "label": "pointer where it already stood, mid-motion, at 942,136",
+        "x": 942,
+        "y": 136,
+        "ms": 1794691125481,
+        "frame": 22
+      },
+      {
+        "kind": "move",
+        "label": "pointer moving to the Ack of INC-4544",
+        "x": 935,
+        "y": 122,
+        "ms": 1794691125604,
+        "frame": 23
+      },
+      {
+        "kind": "move",
+        "label": "pointer moving to the Ack of INC-4544",
+        "x": 939,
+        "y": 116,
+        "ms": 1794691125719,
+        "frame": 24
+      },
+      {
+        "kind": "move",
+        "label": "pointer moving to the Ack of INC-4544",
+        "x": 948,
+        "y": 122,
+        "ms": 1794691125837,
+        "frame": 25
+      },
+      {
+        "kind": "hover",
+        "label": "pointer on the Ack of INC-4544 — the button shows hover",
+        "x": 945,
+        "y": 136,
+        "ms": 1794691125958,
+        "frame": 26
+      },
+      {
+        "kind": "press",
+        "label": "primary button pressed and released on the Ack of INC-4544",
+        "x": 945,
+        "y": 136,
+        "ms": 1794691126343,
+        "frame": 27
+      }
+    ],
+    "hoverEvents": 5,
+    "focusAfter": null,
+    "lookMoves": 7,
+    "lookMovesBeforeLand": 7,
+    "movesLastSecond": 5,
+    "at": "2026-11-14T21:18:46.081Z"
+  },
+  "acked": {
+    "id": "INC-4544",
+    "at": "2026-11-14T21:18:43.657Z",
+    "ageAtClickS": 0.5,
+    "ageOnScreenS": -0.1,
+    "via": "pointer",
+    "trusted": true,
+    "hoverEvents": 1,
+    "scriptedClicks": 0,
+    "focusAfter": null,
+    "clickXY": [
+      945,
+      136
+    ]
+  },
+  "confirm": {
+    "asked": {
+      "ackButtonStillThere": false,
+      "acked": false,
+      "askText": "Ack INC-4544? auth · sev1\nAck INC-4544\nCancel",
+      "asks": true,
+      "offersAck": false,
+      "present": true,
+      "receipt": null
+    },
+    "cancel": {
+      "ok": true,
+      "at": "2026-11-14T21:18:44.791Z",
+      "pressedAtMs": 1794691124791,
+      "xy": [
+        942,
+        136
+      ],
+      "trusted": true,
+      "clickTarget": "confirm-cancel",
+      "scriptedClicks": 0
+    },
+    "afterCancel": {
+      "ackButtonStillThere": true,
+      "acked": false,
+      "askText": null,
+      "asks": false,
+      "offersAck": true,
+      "present": true,
+      "receipt": null
+    },
+    "askedAgain": {
+      "ok": true,
+      "at": "2026-11-14T21:18:46.081Z",
+      "trusted": true,
+      "hovers": 5,
+      "scriptedClicks": 0,
+      "focus": null,
+      "x": 945,
+      "y": 136
+    },
+    "askedAgainState": {
+      "ackButtonStillThere": false,
+      "acked": false,
+      "askText": "Ack INC-4544? auth · sev1\nAck INC-4544\nCancel",
+      "asks": true,
+      "offersAck": false,
+      "present": true,
+      "receipt": null
+    },
+    "confirmAck": {
+      "ok": true,
+      "at": "2026-11-14T21:18:47.234Z",
+      "pressedAtMs": 1794691127234,
+      "xy": [
+        852,
+        136
+      ],
+      "trusted": true,
+      "clickTarget": "confirm-ack",
+      "scriptedClicks": 0
+    },
+    "afterConfirm": {
+      "ackButtonStillThere": false,
+      "acked": true,
+      "askText": null,
+      "asks": false,
+      "offersAck": false,
+      "present": true,
+      "receipt": "acked"
+    },
+    "asksOpenOnBoard": []
+  },
+  "expected": "INC-4544",
+  "got": [
+    "INC-4544"
+  ],
+  "receipt": "a1.2FqHlWV2nskOqV48.3jaFQahMbL0gQ6ufsvTRCUh1mvSJRuybgw4vrlmpgPZOUz4oXuIJG_FB0HXavVtXH2YgSzb15FRzpEo9l37QIaXtWFC27lIkq6q_aQ5ViE0C40PHCNUcO9AEL8pwghY2lk2o3q4VdPxidUg0ZPxBo9mnMXGFyghvPVhVUlQR3hAEDi6fcxu20Umlx_ESq07sEzM",
+  "changeFrame": 34,
+  "at": "00:13",
+  "atLanded": "00:08",
+  "atClicked": "00:09",
+  "landedFramesBefore": 8,
+  "finishedAt": "2026-11-14T21:19:01.335Z",
+  "sha": "13a362681697515b75e107f820bc53d00f21436b",
+  "short": "13a362681697"
+}
