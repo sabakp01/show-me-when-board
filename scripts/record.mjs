@@ -46,6 +46,16 @@ if (race && flow !== 'ack-incident') {
   console.error('record: --race parked needs --flow ack-incident');
   process.exit(2);
 }
+// --confirm on records what product decided on 2026-11-14T20:52:10Z. The pointer presses the Ack of a row
+// that just landed; the ask that opens is then READ off the screen — its own text, its own rectangle — and
+// the pointer presses that row's confirm-ack. The recorder never calls the ack itself: it reads which row
+// carries the ask, how many incidents landed while the ask stood, and which row shows the receipt after.
+const confirmAsk = opts.confirm === 'on';
+if (confirmAsk && (flow !== 'ack-incident' || race)) {
+  console.error('record: --confirm on needs --flow ack-incident and no --race');
+  process.exit(2);
+}
+
 // Waiting for an incident to land takes minutes; a take nobody wants to sit through proves nothing
 // either. So the camera runs slow (1 frame/s) while it waits and switches to `fps` the moment there
 // is something to see. Each frame carries its real timestamp, and the video is cut at those times,
@@ -377,6 +387,87 @@ async function pressAckLikeAPerson(id) {
   };
 }
 
+// --confirm on: the ask is read off the screen, never assumed. What the row shows where its Ack button
+// was, in the page's own words; what the row looks like after a cancel; which button the pointer presses
+// next. Every value below comes out of the live DOM at the moment it is needed, after the press.
+async function rowState(id) {
+  return ff.js(`const li = document.querySelector('[data-testid="incident-row"][data-id="${id}"]');
+    if (!li) return { present: false };
+    const ack = li.querySelector('[data-testid="ack"]');
+    const confirm = li.querySelector('[data-testid="confirm"]');
+    const acked = li.querySelector('[data-testid="acked"]');
+    return { present: true, offersAck: !!ack, acked: !!acked, receipt: acked ? acked.innerText.trim() : null,
+             asks: !!confirm, askText: confirm ? confirm.innerText.trim() : null,
+             ackButtonStillThere: !!ack };`);
+}
+
+// The pointer presses a button inside the row — the confirm's own, at its own rectangle, with the same
+// eased approach it uses everywhere else, so the frames show a hand travelling to a thing, not a call.
+async function pressRowButton(id, testid) {
+  let at = await ff.js(`const li = document.querySelector('[data-testid="incident-row"][data-id="${id}"]');
+    const b = li && li.querySelector('[data-testid="${testid}"]');
+    if (!b) return null;
+    const r = b.getBoundingClientRect();
+    return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2),
+             w: Math.round(r.width), h: Math.round(r.height) };`);
+  if (!at) return { ok: false, why: `the row showed no [data-testid="${testid}"] to press` };
+  const vp = await ff.viewport();
+  if (at.y < 0 || at.y > vp.h || at.x < 0 || at.x > vp.w) {
+    await ff.wheel(at.y - Math.round(vp.h / 2), Math.round(vp.w / 2), Math.round(vp.h / 2));
+    await sleep(250);
+    return pressRowButton(id, testid);
+  }
+  const steps = [[0.4, 140], [0.8, 110], [1, 120]];
+  const from = { ...pointerNow };
+  for (const [t, ms] of steps) {
+    const x = Math.round(from.x + (at.x - from.x) * t);
+    const y = Math.round(from.y + (at.y - from.y) * t);
+    await ff.moveTo(x, y, ms);
+    pointerNow = { x, y };
+    await grab(`pointer on its way to the ${testid} of ${id}`);
+  }
+  await sleep(120);
+  // The board refreshes every 2s and a row can slide while the hand travels. Re-read the button's own
+  // rectangle the moment before the press and correct, so the press answers where the button is now —
+  // which is exactly the mistake the ask is there to catch for a person, and cannot be for this take.
+  const now2 = await ff.js(`const li = document.querySelector('[data-testid="incident-row"][data-id="${id}"]');
+    const b = li && li.querySelector('[data-testid="${testid}"]');
+    if (!b) return null;
+    const r = b.getBoundingClientRect();
+    return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2),
+             w: Math.round(r.width), h: Math.round(r.height) };`);
+  if (!now2) return { ok: false, why: `the [data-testid="${testid}"] of ${id} was gone by the time the hand got there` };
+  if (Math.abs(now2.x - at.x) > 2 || Math.abs(now2.y - at.y) > 2) {
+    await grab(`the ${testid} of ${id} moved to ${now2.x},${now2.y} while the hand travelled — correcting`);
+    await ff.moveTo(now2.x, now2.y, 90);
+    pointerNow = { x: now2.x, y: now2.y };
+    await sleep(80);
+    at = now2;
+  }
+  const pressedAtMs = Date.now();
+  await ff.press(at.x, at.y);
+  await sleep(150);
+  await grab(`primary button down and up on ${testid} of ${id} at ${at.x},${at.y}`);
+  const page = await ff.js(`const ev = (window.__takeEvents || []);
+    const clicks = ev.filter((e) => e.type === 'click');
+    const last = clicks[clicks.length - 1] || null;
+    return { last, scripted: clicks.filter((e) => !e.trusted).length };`);
+  const hit = page.last;
+  const inside = hit && Math.abs(hit.x - at.x) <= Math.max(8, Math.round(at.w / 2))
+    && Math.abs(hit.y - at.y) <= Math.max(8, Math.round(at.h / 2));
+  if (hit && hit.target !== testid) {
+    return {
+      ok: false,
+      why: `the press at ${at.x},${at.y} arrived as a click on ${hit.target}, not on [data-testid="${testid}"] — the list moved between measuring that button and pressing it`,
+    };
+  }
+  if (!hit || !hit.trusted || !inside) {
+    return { ok: false, why: `the click that arrived was ${hit ? `${hit.target} at ${hit.x},${hit.y} trusted=${hit.trusted}` : 'nothing'}`, at: at };
+  }
+  return { ok: true, at: new Date(pressedAtMs).toISOString(), pressedAtMs, xy: [at.x, at.y],
+           trusted: true, clickTarget: hit.target, scriptedClicks: page.scripted };
+}
+
 const seen = new Set(); // incidents that were on screen last frame
 let firstAtMs = null;
 let clicked = null; // the incident this take acks
@@ -427,7 +518,7 @@ try {
       break;
     }
     const spent = Date.now();
-    if (race && clicked && !changeFrame && Date.now() > clickDeadline) {
+    if ((race || confirmAsk) && clicked && !changeFrame && Date.now() > clickDeadline) {
       note = `the press at ${clicked.clickXY.join(',')} got no receipt within 20s`;
       break;
     }
@@ -497,6 +588,59 @@ try {
             take.acked = clicked;
             if (race) take.race = press.race || null;
             clickDeadline = (press.pressedAtMs || Date.now()) + 20000;
+
+            if (confirmAsk) {
+              // That Ack sent nothing — that is the whole decision, and the screen has to say so. Read the
+              // row back: the ask, in the page's own words, with its own two buttons where Ack was.
+              await sleep(250);
+              await grab('the row a second after its Ack was pressed — the Ack is gone, an ask stands in its place');
+              const asked = await rowState(fresh.id);
+              take.confirm = { asked };
+              if (!asked.asks || !asked.askText) {
+                note = `${fresh.id}'s Ack went down, but its row shows no ask — this board still acks on the first press`;
+                break;
+              }
+              note = `${fresh.id} asks before it acks: "${asked.askText.replace(/\s+/g, ' ').slice(0, 70)}"`;
+              // Whoever reads the wrong id in that ask has to be able to get out of it, and getting out
+              // must send nothing. So the recorder cancels first, and reads the row again to prove it.
+              const cancel = await pressRowButton(fresh.id, 'confirm-cancel');
+              take.confirm.cancel = cancel;
+              if (!cancel.ok) {
+                note = `${fresh.id} asked, but ${cancel.why} — this take stops here`;
+                break;
+              }
+              await sleep(400);
+              await grab(`${fresh.id} after the cancel — its Ack is back and the row is not acked`);
+              take.confirm.afterCancel = await rowState(fresh.id);
+              // Ask again, and take the row's confirm this time.
+              const again = await pressAckLikeAPerson(fresh.id);
+              take.confirm.askedAgain = again;
+              if (!again.ok) {
+                note = `${fresh.id} was cancelled, but its Ack could not be pressed a second time: ${again.why}`;
+                break;
+              }
+              await sleep(250);
+              const asked2 = await rowState(fresh.id);
+              take.confirm.askedAgainState = asked2;
+              if (!asked2.asks) {
+                note = `${fresh.id} was Acked twice, but the second press opened no ask`;
+                break;
+              }
+              await grab(`the ask standing open on ${fresh.id} once more: "${asked2.askText.replace(/\s+/g, ' ').slice(0, 60)}"`);
+              const ok = await pressRowButton(fresh.id, 'confirm-ack');
+              take.confirm.confirmAck = ok;
+              await sleep(500);
+              await grab(`${fresh.id} half a second after its confirm-ack went down`);
+              take.confirm.afterConfirm = await rowState(fresh.id);
+              take.confirm.asksOpenOnBoard = await ff.js(`return [...document.querySelectorAll('[data-testid="incident-row"]')]
+                .filter((li) => li.querySelector('[data-testid="confirm"]')).map((li) => li.dataset.id);`);
+              if (!ok.ok) {
+                note = `${fresh.id} asked again, but ${ok.why} — this take stops here`;
+                break;
+              }
+              clickDeadline = Date.now() + 20000; // from here the receipt is the thing to wait for
+              note = `${fresh.id} was asked, cancelled, asked again, and its confirm-ack went down at ${ok.xy.join(',')}; its receipt is the change to wait for`;
+            }
 
             note = race
               ? `the Ack at ${park.x},${park.y} went down — those are ${park.meant}'s coordinates, measured before ${fresh.id} arrived, and the press is ${ageAtPress}s after it opened`
@@ -727,18 +871,42 @@ const cleanProofed = !!take.at && !!take.landed && !!take.acked && take.landed.i
   && oneRow && pressedLikeAPerson && movedWhileChanging && ackedInTime;
 const raceProofed = race && !!take.at && !!take.landed && !!take.acked && wrongRow
   && pressedLikeAPerson && movedWhileChanging && parkedSpotPressed && rowSlidUnder;
-const proofed = race ? raceProofed : cleanProofed;
+const confirmProofed = confirmAsk && !!take.confirm && !!take.confirm.asked && take.confirm.asked.asks === true
+  && take.confirm.asked.ackButtonStillThere === false
+  && String(take.confirm.asked.askText || '').includes(take.expected || take.acked?.id || '')
+  && !!take.confirm.cancel && take.confirm.cancel.ok === true && take.confirm.cancel.trusted === true
+  && !!take.confirm.afterCancel && take.confirm.afterCancel.acked === false
+  && take.confirm.afterCancel.offersAck === true
+  && !!take.confirm.askedAgainState && take.confirm.askedAgainState.asks === true
+  && !!take.confirm.confirmAck && take.confirm.confirmAck.ok === true && take.confirm.confirmAck.trusted === true
+  && oneRow && take.landed && take.expected === take.landed.id;
+const proofed = race ? raceProofed : confirmAsk ? cleanProofed && confirmProofed : cleanProofed;
 if (race && take.race) {
   const r = take.race;
   console.log(`take: the hand rested on ${r.meant}'s Ack at ${r.parkedXy.join(',')} from ${r.parkedAt} — ${r.tremors} tremors, the coordinates never re-aimed`);
   console.log(`take: the board inserted ${r.insertId} at ${r.insertAt}; the button went down ${r.pressAfterInsertMs}ms later, at the same spot`);
   console.log(`take: ${r.meant} slid ${r.shiftPx}px down out from under the pointer and still offers Ack (${r.meantStillOffersAck}); the click's own target was ${r.clickTarget} of ${r.underPointerRow}, the row under it now`);
 }
+if (take.confirm) {
+  const c = take.confirm;
+  const oneLine = (s) => String(s || '').replace(/\s+/g, ' ').slice(0, 70);
+  console.log(`take: ${take.expected || (take.acked && take.acked.id) || '?'} — its Ack opened an ask reading "${oneLine(c.asked && c.asked.askText)}" (Ack button gone: ${!(c.asked && c.asked.ackButtonStillThere)})`);
+  console.log(`take: cancel pressed at ${(c.cancel && c.cancel.xy && c.cancel.xy.join(',')) || '?'} (trusted=${!!(c.cancel && c.cancel.trusted)}) — row after: Ack back=${!!(c.afterCancel && c.afterCancel.offersAck)}, acked=${!!(c.afterCancel && c.afterCancel.acked)}`);
+  console.log(`take: confirm-ack pressed at ${(c.confirmAck && c.confirmAck.xy && c.confirmAck.xy.join(',')) || '?'} (target=${(c.confirmAck && c.confirmAck.clickTarget) || '?'}, trusted=${!!(c.confirmAck && c.confirmAck.trusted)}) — row after: acked=${!!(c.afterConfirm && c.afterConfirm.acked)}`);
+}
 const reasons = [];
 if (!take.at || !take.acked) reasons.push('no ack appeared on the board in this take');
 if (!pressedLikeAPerson) reasons.push('the ack was not pressed by a real pointer click the page reports as trusted');
 if (!movedWhileChanging) reasons.push('the pointer stood still while the board was changing');
 if (!oneReceipt) reasons.push('the new receipt is not on exactly one row');
+if (confirmAsk) {
+  const c = take.confirm || {};
+  if (!c.asked) reasons.push('the Ack never opened an ask on the row it was pressed on');
+  else if (!c.namesId) reasons.push(`the ask does not name the incident: "${String(c.asked.text).replace(/\s+/g, ' ').slice(0, 60)}"`);
+  else if (c.asked.stillOffersAck) reasons.push('the row still offers its plain Ack, so nothing was asked');
+  if (!c.pressed || !c.pressed.ok) reasons.push(c.pressed ? `the confirm could not be pressed: ${c.pressed.why}` : 'the confirm was never pressed');
+  else if (!c.pressed.trusted) reasons.push('the confirm was not pressed by a pointer click the page reports as trusted');
+}
 if (race) {
   if (!wrongRow) reasons.push('the ack landed on the row the hand rested on — this take holds no race');
   if (!parkedSpotPressed) reasons.push('the press did not go to the parked coordinates, or no Ack button took it');

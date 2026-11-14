@@ -56,6 +56,26 @@ That is the task for this build, and it is what `plan.md` R1–R2 above now says
 
 Nothing else in the plan moved: the flow list, the other hooks, and the Done section stand as written.
 
+## System Diff
+
+What moved in the system between the build on-call watched in the step-1 recording and the build that
+answers it. In that recording the hand rested on `INC-3403`'s Ack at 945,181; `INC-4544` was inserted at
+20:35:01.560, the button went down 49 ms later at the same spot, `INC-3403` had slid 45 px down out from
+under the pointer, and the receipt came back on `INC-3856`. One row below for each value that moved;
+anything not listed is exactly as that build left it.
+
+| part | before | after | who decided | where it shows |
+|------|--------|-------|-------------|----------------|
+| what a press on Ack does | sent `api.ack(id)`; the row came back acked on the next refresh | changes only that row's own state: it opens an ask standing where the Ack was | product, 2026-11-14T20:52:10.349Z | R2; replay `d` (nothing is acked until you commit); the take's frames between the press and the receipt |
+| what the row says about the press | nothing — the row never named the incident the press would take | the ask says it in words, and the button says it again: `Ack INC-4544?` for the row `INC-4544` | product ("the confirm names the incident id") | R2; replay `x`; `verify` check 2 (the ask's own text must contain that row's id) |
+| who commits the ack | the pointer's coordinates, read against whichever row happened to sit under them | a second, deliberate press on that row's `confirm-ack`, which commits the id the row holds — never a coordinate | product | R2; the take's `confirmAck` (its own rectangle, read after the ask opened) |
+| getting out | there was no way out | `confirm-cancel`, or Escape, closes the ask; the row keeps offering Ack and no request was ever made | product named the control; the Escape key is my addition | replay `j`; `verify` checks 5 and 6; the take's `afterCancel` (Ack back, no receipt) |
+| an open ask across a refresh | n/a | the ask is rebuilt from the row's own state, so a refresh that reorders the list keeps it open on the same row | mine, to keep the decision honest while the board moves | `verify` check 4 |
+| where the control lives | the Ack sat in the row | unchanged: the ask is built inside that row's own `.act` cell, so a row that slides carries its open ask with it | — | R2's last sentence |
+| list order, cadence, loader, empty state, times, build name | newest first, live; 2 s refresh; loader; empty; local dd/mm; `<meta name="build">` + footer sha | unchanged | product re-affirmed R1 | replay `a`, `g`, `h`, `i`, `y`; R1, R3–R6 |
+| test hooks | `board loader empty incident-list incident-row ack acked build-sha` | the same, plus `confirm`, `confirm-ack`, `confirm-cancel` | product named all three in the same answer | Hooks table |
+
 ## Done
+
 
 Every issue in `issues/` delivered, deployed to a public https address, and shown working.
