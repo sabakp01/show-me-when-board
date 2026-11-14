@@ -132,18 +132,21 @@ async function pressAckLikeAPerson(id) {
   const from = { x: Math.round(vp.w * 0.62), y: Math.min(vp.h - 24, at.y + 170) };
   await ff.moveTo(from.x, from.y);
   await step('pointer resting before the board', from.x, from.y, 'rest');
-  const moves = 4;
+  await sleep(400); // a person reads the row before reaching for it
+  const moves = 5;
   for (let s = 1; s <= moves; s++) {
     const t = s / moves;
     const x = Math.round(from.x + (at.x - from.x) * t);
-    const y = Math.round(from.y + (at.y - from.y) * t - 28 * Math.sin(Math.PI * t)); // a slight arc, like a hand
-    await ff.moveTo(x, y, 90);
+    const y = Math.round(from.y + (at.y - from.y) * t - 30 * Math.sin(Math.PI * t)); // a slight arc, like a hand
+    await ff.moveTo(x, y, 130);
     await step(`pointer moving to the Ack of ${id}`, x, y, 'move');
+    await sleep(160);
   }
-  await sleep(280); // a person looks before pressing; the hover state is on camera in this frame
+  await sleep(550); // and looks at the button before pressing it; the hover state is on camera here
   await step(`pointer on the Ack of ${id} — the button shows hover`, at.x, at.y, 'hover');
   const pressedAtMs = Date.now();
   await ff.press(at.x, at.y);
+  await sleep(220);
   await step(`primary button pressed and released on the Ack of ${id}`, at.x, at.y, 'press');
 
   const page = await ff.js(`return { events: window.__takeEvents || [], hovers: window.__takeHovers || 0,
