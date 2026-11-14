@@ -651,7 +651,7 @@ try {
             break;
           }
         }
-      } else if (!changeFrame && !race) {
+      } else if (!changeFrame && race) {
         // The race answers on its own terms: a click that left no receipt anywhere is the failure, not
         // a frame to wait through. Park the take and let the gate below report it.
         if (clicked && take.race) {
@@ -901,11 +901,29 @@ if (!movedWhileChanging) reasons.push('the pointer stood still while the board w
 if (!oneReceipt) reasons.push('the new receipt is not on exactly one row');
 if (confirmAsk) {
   const c = take.confirm || {};
-  if (!c.asked) reasons.push('the Ack never opened an ask on the row it was pressed on');
-  else if (!c.namesId) reasons.push(`the ask does not name the incident: "${String(c.asked.text).replace(/\s+/g, ' ').slice(0, 60)}"`);
-  else if (c.asked.stillOffersAck) reasons.push('the row still offers its plain Ack, so nothing was asked');
-  if (!c.pressed || !c.pressed.ok) reasons.push(c.pressed ? `the confirm could not be pressed: ${c.pressed.why}` : 'the confirm was never pressed');
-  else if (!c.pressed.trusted) reasons.push('the confirm was not pressed by a pointer click the page reports as trusted');
+  if (!c.asked || c.asked.asks !== true) {
+    reasons.push('the Ack never opened an ask on the row it was pressed on');
+  } else {
+    if (!String(c.asked.askText || '').includes(take.expected || '')) {
+      reasons.push(`the ask does not name the incident: "${String(c.asked.askText).replace(/\s+/g, ' ').slice(0, 60)}"`);
+    }
+    if (c.asked.ackButtonStillThere) reasons.push('the row still offers its plain Ack, so nothing was asked');
+  }
+  if (!c.cancel || !c.cancel.ok) {
+    reasons.push(c.cancel ? `the cancel could not be pressed: ${c.cancel.why}` : 'the ask was never cancelled');
+  } else if (!c.cancel.trusted) {
+    reasons.push('the cancel was not a pointer click the page reports as trusted');
+  }
+  if (!c.afterCancel || c.afterCancel.acked !== false || c.afterCancel.offersAck !== true) {
+    reasons.push('cancelling left something behind: the row should be unacked with its Ack back');
+  }
+  if (!c.askedAgainState || c.askedAgainState.asks !== true) reasons.push('the second Ack opened no ask');
+  if (!c.confirmAck || !c.confirmAck.ok) {
+    reasons.push(c.confirmAck ? `the confirm could not be pressed: ${c.confirmAck.why}` : 'the confirm was never pressed');
+  } else if (!c.confirmAck.trusted) {
+    reasons.push('the confirm was not pressed by a pointer click the page reports as trusted');
+  }
+  if (!c.afterConfirm || c.afterConfirm.acked !== true) reasons.push('the confirm went down and the row never showed acked');
 }
 if (race) {
   if (!wrongRow) reasons.push('the ack landed on the row the hand rested on — this take holds no race');
