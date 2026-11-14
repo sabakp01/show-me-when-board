@@ -5,6 +5,9 @@ run-name: deploy ${{ github.sha }}
 on:
   push:
     branches: [main]
+    # A take added under media/ is not part of the board: rebuilding would stamp the page with a
+    # commit that changed nothing the board runs, and the recording would stop naming its own build.
+    paths-ignore: ['media/**']
   workflow_dispatch:
 permissions:
   contents: read
