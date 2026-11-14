@@ -7,6 +7,7 @@
     "serve:npx": "npx --yes serve@14.2.4 app",
     "stamp": "node scripts/stamp.mjs",
     "verify": "node scripts/verify.mjs",
+    "verify:pointer": "node scripts/verify-pointer.mjs",
     "record": "node scripts/record.mjs"
   },
   "devDependencies": {
