@@ -3,8 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- R6: the page names its build. stamp.mjs (and the deploy workflow) fill both places. -->
-    <meta name="build" content="631937bac61416a568fc81ff54d893bc6c287eff" />
+    <!-- R6: the page names its build. stamp.mjs (and the deploy workflow) fill both places.
+         Tracked here as zeros on purpose: a commit hash in this file would claim a build the page
+         was not built from — only a build run knows which commit produced the page it ships. -->
+    <meta name="build" content="0000000000000000000000000000000000000000" />
     <title>sched-prod · incidents</title>
     <link rel="stylesheet" href="style.css" />
     <script type="module" src="app.js"></script>
@@ -29,7 +31,7 @@
       </section>
     </main>
     <footer>
-      sched-prod incident board · build <span data-testid="build-sha">631937bac61416a568fc81ff54d893bc6c287eff</span>
+      sched-prod incident board · build <span data-testid="build-sha">0000000000000000000000000000000000000000</span>
     </footer>
   </body>
 </html>

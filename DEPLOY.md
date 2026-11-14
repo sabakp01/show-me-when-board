@@ -23,6 +23,15 @@ the browser this workspace uses, and nothing Chromium-based runs here. Point the
 `app/index.html` (meta + footer), fills `app/config.js` from the **`BOARD_SESSION`** repository secret,
 and uploads `app/`. `.github/workflows/prove.yml` is the course's file and is left exactly as shipped.
 
+The tracked `app/index.html` names its build as `0000…0`. That is deliberate: a real hash committed
+here would claim a build the page was not built from. `scripts/stamp.mjs` fills the name at build time
+— from `git rev-parse HEAD` on your machine, from `$GITHUB_SHA` on the runner — so the page only ever
+carries the sha of the commit that actually produced it. `npm run stamp -- --check` says whether a page
+names its build.
+
+Takes of the running board go under `media/` (see `npm run record`); the workflow ignores that folder,
+because a take is not part of what the board runs and must not restamp the page a take is showing.
+
 Once per repo:
 
 ```
