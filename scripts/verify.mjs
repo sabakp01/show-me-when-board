@@ -65,7 +65,7 @@ try {
   add('R3 loader: it stands before the first answer lands', firstLook.loader || firstLook.rows > 0, firstLook.loader ? `loader shown; status "${firstLook.status}"` : `load finished before the first look; status "${firstLook.status}"`);
 
   // R4: count the board's own fetches — nothing else drives this page.
-  await ff.js('window.__fetches = 0; const f = window.fetch.bind(window); window.fetch = (...a) => { window.__fetches++; return f(...a); }; return true;');
+  await ff.js('window.__fetches = 0; window.__ackCalls = 0; const f = window.fetch.bind(window); window.fetch = (...a) => { window.__fetches++; if (String(a[0]).includes("/api/ack")) window.__ackCalls++; return f(...a); }; return true;');
 
   await ff.until(
     'return document.querySelectorAll("[data-testid=\\"incident-row\\"]").length > 0 || !!document.querySelector("[data-testid=\\"empty\\"]:not([hidden])");',
@@ -109,7 +109,9 @@ try {
   page.fetchesIn5s = after - before;
   add('R4 refresh: it re-reads the API by itself (2s cadence)', after - before >= 2, `${after - before} fetches in 5s`);
 
-  // R2: Ack turns that row's button into the acked mark and leaves a receipt behind.
+  // R2, as product decided on 2026-11-14T20:52:10Z: Ack does not ack — it asks, and the ask names the
+  // incident id. The check walks the whole ask: open it, read what it names, cancel, re-open, confirm —
+  // counting the calls to /api/ack the page makes, so "nothing went out yet" is measured, not assumed.
   const target = await ff.js(`const li = [...document.querySelectorAll('[data-testid="incident-row"]')]
       .find(l => l.querySelector('[data-testid="ack"]'));
     if (!li) return null;
@@ -119,31 +121,93 @@ try {
     add('R2 ack: a row offers Ack', false, 'no row carried an Ack button — every incident already acked?');
   } else {
     page.ackTarget = target;
-    let acked;
+    let ask;
     try {
-      acked = await ff.until(
+      ask = await ff.until(
         `const li = document.querySelector('[data-testid="incident-row"][data-id="${target}"]');
-         const m = li && li.querySelector('[data-testid="acked"]');
-         return m ? { receipt: m.getAttribute('data-receipt'), title: m.getAttribute('title'),
-                      status: document.getElementById('status').textContent } : null;`,
-        15000,
-        `the acked mark on ${target}`,
+         const c = li && li.querySelector('[data-testid="confirm"]');
+         if (!c) return null;
+         return { text: c.innerText.trim(),
+                  hooks: [...li.querySelectorAll('[data-testid]')].map((e) => e.getAttribute('data-testid')).join(','),
+                  acked: !!li.querySelector('[data-testid="acked"]'), ackCalls: window.__ackCalls };`,
+        5000,
+        `the confirm on ${target}`,
       );
     } catch (e) {
-      const why = await ff.js('return document.getElementById("status").textContent;').catch(() => '');
-      add('R2 ack: Ack becomes acked with a receipt', false, `${target}: ${e.message.split(':')[0]} — status "${why}"`);
+      add('R2 ack: Ack opens a confirm instead of acking', false, `${target}: ${e.message.split(':')[0]} — no [data-testid="confirm"] showed`);
     }
-    if (acked) {
-      page.ack = acked;
-      add('R2 ack: Ack becomes acked and carries a receipt', !!acked.receipt, `${target} → ${acked.receipt}`);
-      add('R2 ack: the receipt is shown on the page', /·/.test(acked.title || ''), acked.title);
-      // A refresh re-renders the list; the acked row must survive it (merge by id, no reset).
+    if (ask) {
+      page.confirm = ask;
+      add('R2 ack: Ack opens a confirm instead of acking', true, `asked on ${target}`);
+      add('R2 confirm: the ask names the incident id it was clicked on', ask.text.includes(target), `"${ask.text}"`);
+      add('R2 confirm: the ask carries the confirm-ack and confirm-cancel hooks', /confirm-ack/.test(ask.hooks) && /confirm-cancel/.test(ask.hooks), ask.hooks);
+      add('R2 confirm: nothing is acked and no ack call went out while the ask stands', !ask.acked && ask.ackCalls === 0, `acked ${ask.acked}, /api/ack calls ${ask.ackCalls}`);
+      // "Ack stays on the row": the ask is a child of the row, so two self-refreshes — and a feed that
+      // is opening incidents right now — must neither close it nor move it off the row it opened on.
       await sleep(4000);
-      const kept = await ff.js(`const li = document.querySelector('[data-testid="incident-row"][data-id="${target}"]');
-        return { acked: !!li.querySelector('[data-testid="acked"]'), button: !!li.querySelector('[data-testid="ack"]'),
-                 receipts: document.querySelectorAll('#receipt-list li').length };`);
-      add('R4 refresh: the acked row stays acked after a refresh', kept.acked && !kept.button, JSON.stringify(kept));
-      add('R2 ack: the receipt is listed under ack receipts', kept.receipts > 0, `${kept.receipts} receipt line(s)`);
+      const held = await ff.js(`const li = document.querySelector('[data-testid="incident-row"][data-id="${target}"]');
+        const c = li && li.querySelector('[data-testid="confirm"]');
+        const top = document.querySelector('[data-testid="incident-row"]');
+        return { stillOnRow: !!c, names: c ? c.innerText.includes('${target}') : false,
+                 topId: top ? top.dataset.id : null, rows: document.querySelectorAll('[data-testid="incident-row"]').length };`);
+      add('R2 confirm: the ask is still inside that row after two refreshes', held.stillOnRow && held.names, JSON.stringify(held));
+
+      // Cancel closes the ask, the row goes back to offering Ack, and still nothing has been sent.
+      await ff.js(`document.querySelector('[data-testid="incident-row"][data-id="${target}"] [data-testid="confirm-cancel"]').click(); return true;`);
+      await sleep(400);
+      const cancelled = await ff.js(`const li = document.querySelector('[data-testid="incident-row"][data-id="${target}"]');
+        return { confirm: !!li.querySelector('[data-testid="confirm"]'), ack: !!li.querySelector('[data-testid="ack"]'),
+                 acked: !!li.querySelector('[data-testid="acked"]'), ackCalls: window.__ackCalls };`);
+      add('R2 confirm: Cancel closes it, leaves the row offering Ack, sends nothing', !cancelled.confirm && cancelled.ack && !cancelled.acked && cancelled.ackCalls === 0, JSON.stringify(cancelled));
+
+      // Re-open and confirm: this is the only way an ack leaves the page.
+      await ff.js(`document.querySelector('[data-testid="incident-row"][data-id="${target}"] [data-testid="ack"]').click(); return true;`);
+      let confirmed;
+      try {
+        confirmed = await ff.until(
+          `const li = document.querySelector('[data-testid="incident-row"][data-id="${target}"]');
+           const b = li && li.querySelector('[data-testid="confirm-ack"]');
+           if (!b) return null;
+           if (!b.disabled) b.click();
+           return b.textContent;`,
+          5000,
+          `the confirm-ack button on ${target}`,
+        );
+      } catch (e) {
+        add('R2 confirm: confirm-ack is what sends the ack', false, `${target}: ${e.message.split(':')[0]}`);
+      }
+      if (confirmed) {
+        page.confirmAckLabel = confirmed;
+        add('R2 confirm: the confirm-ack control names the id it commits', String(confirmed).includes(target), `"${confirmed}"`);
+      }
+      let acked;
+      try {
+        acked = await ff.until(
+          `const li = document.querySelector('[data-testid="incident-row"][data-id="${target}"]');
+           const m = li && li.querySelector('[data-testid="acked"]');
+           return m ? { receipt: m.getAttribute('data-receipt'), title: m.getAttribute('title'),
+                        status: document.getElementById('status').textContent,
+                        ackCalls: window.__ackCalls } : null;`,
+          15000,
+          `the acked mark on ${target}`,
+        );
+      } catch (e) {
+        const why = await ff.js('return document.getElementById("status").textContent;').catch(() => '');
+        add('R2 ack: the confirm ends with the row acked and a receipt', false, `${target}: ${e.message.split(':')[0]} — status "${why}"`);
+      }
+      if (acked) {
+        page.ack = acked;
+        add('R2 ack: the ack went out once, only after the confirm', acked.ackCalls === 1, `/api/ack calls ${acked.ackCalls}`);
+        add('R2 ack: that row is acked and carries a receipt', !!acked.receipt, `${target} → ${acked.receipt}`);
+        add('R2 ack: the receipt is shown on the page', /·/.test(acked.title || ''), acked.title);
+        // A refresh re-renders the list; the acked row must survive it (merge by id, no reset).
+        await sleep(4000);
+        const kept = await ff.js(`const li = document.querySelector('[data-testid="incident-row"][data-id="${target}"]');
+          return { acked: !!li.querySelector('[data-testid="acked"]'), button: !!li.querySelector('[data-testid="ack"]'),
+                   receipts: document.querySelectorAll('#receipt-list li').length };`);
+        add('R4 refresh: the acked row stays acked after a refresh', kept.acked && !kept.button, JSON.stringify(kept));
+        add('R2 ack: the receipt is listed under ack receipts', kept.receipts > 0, `${kept.receipts} receipt line(s)`);
+      }
     }
   }
 

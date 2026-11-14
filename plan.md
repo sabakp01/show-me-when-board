@@ -13,8 +13,8 @@ what just broke and takes it.
 
 ## Requirements
 
-- **R1** New incidents appear live at the top of the list, newest first.
-- **R2** Each incident row has an **Ack** button. Ack sends the ack (`api.ack(id)`) and marks the row acked.
+- **R1** New incidents appear live at the top of the list, newest first. (Re-affirmed by product, 2026-11-14T20:52:10Z: "New incidents stay live at the top".)
+- **R2** Each incident row has an **Ack** button. Ack does not ack: it opens a confirm **inside that row**, and the confirm names the incident id. Only `confirm-ack` sends the ack (`api.ack(id)`) and marks the row acked; `confirm-cancel` (or Escape) closes the ask and the row keeps offering Ack. The Ack and its ask stay on the row — they are children of the row, so they travel with it when the list moves, and the ack can only ever commit the id the person read.
 - **R3** Show a loader until incidents load.
 - **R4** The board refreshes itself every 2 seconds while open.
 - **R5** Times show in the viewer's local time; day before month for EU locales (dd/mm).
@@ -30,8 +30,31 @@ what just broke and takes it.
 | `incident-list` | the list |
 | `incident-row` | one incident row, with `data-id="<incident id>"` |
 | `ack` | the Ack button in a row |
+| `confirm` | the ask a row shows after its Ack is clicked; its text names the incident id |
+| `confirm-ack` | the control in that ask that sends the ack, labelled with the same id |
+| `confirm-cancel` | the control in that ask that closes it and sends nothing |
 | `acked` | the acked mark in a row |
 | `build-sha` | the sha in the footer |
+
+## Product's decision (answered 2026-11-14T20:52:10.349Z)
+
+Product watched the step-1 recording (the ack race at 00:08) and decided:
+
+> New incidents stay live at the top and Ack stays on the row, but Ack asks to confirm, and the confirm
+> names the incident id. — product
+
+That is the task for this build, and it is what `plan.md` R1–R2 above now says.
+
+### What this replaces
+
+| value | as it stood | as it stands now | who | when |
+|-------|-------------|------------------|-----|------|
+| R2, the Ack's effect | "Ack sends the ack (`api.ack(id)`) and marks the row acked." | Ack opens a confirm naming the id; only `confirm-ack` sends it | proposed and approved by product ("Ack asks to confirm"), implementation mine | 2026-11-14T20:52:10.349Z |
+| Hooks | `ack`, `acked` | plus `confirm`, `confirm-ack`, `confirm-cancel` | product named the three hooks in the same answer | 2026-11-14T20:52:10.349Z |
+| R1 (order) | newest first, live | unchanged — product re-affirmed it | product | 2026-11-14T20:52:10.349Z |
+| R3–R6 | loader, 2 s refresh, local times, named build | unchanged by this decision | — | — |
+
+Nothing else in the plan moved: the flow list, the other hooks, and the Done section stand as written.
 
 ## Done
 

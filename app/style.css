@@ -59,6 +59,36 @@ footer { color: #777; font-size: 13px; }
 }
 .row.is-acked { background: #fbfffc; }
 
+/* R2 as product decided (2026-11-14): the Ack of a row asks first, and the ask names the incident id.
+   The ask is a child of the row's own .act, so it travels with the row when the list re-orders. */
+.confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.confirm-q { color: #1d1d1f; font-weight: 600; }
+.confirm-ack {
+  font: inherit;
+  padding: 5px 12px;
+  border: 1px solid #16794a;
+  border-radius: 6px;
+  background: #e7f6ee;
+  color: #16794a;
+  cursor: pointer;
+}
+.confirm-ack:disabled { opacity: 0.6; cursor: default; }
+.confirm-cancel {
+  font: inherit;
+  padding: 5px 10px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  background: #fff;
+  color: #444;
+  cursor: pointer;
+}
+.row.is-confirming { background: #fffaf0; }
+
 /* R1: a row that just arrived is briefly lit, so a live board reads as live. */
 .row.arrived { animation: arrived 1.2s ease-out 1; }
 @keyframes arrived {

@@ -1,7 +1,7 @@
 // The sched-prod incident board.
-// plan.md: R1 newest-first live list · R2 Ack per row · R3 loader until load · R4 self-refresh
-// every 2s · R5 viewer-local times · R6 named build (in index.html). The data-testid hooks are the
-// pinned ones from plan.md; tests and the course's replay rely on them.
+// plan.md: R1 newest-first live list · R2 Ack per row, asking to confirm first (product, 2026-11-14) ·
+// R3 loader until load · R4 self-refresh every 2s · R5 viewer-local times · R6 named build (in index.html).
+// The data-testid hooks are the pinned ones from plan.md; tests and the course's replay rely on them.
 import { fetchIncidents, ack, acks } from './api.js';
 
 const REFRESH_MS = 2000; // R4
@@ -19,6 +19,7 @@ const seenReceipts = new Set();
 
 let loaded = false; // R3: false until the first incidents answer lands
 let inFlight = null; // R4: never let two refreshes overlap
+let confirming = null; // R2 (as amended): the id whose Ack is waiting for a confirm, or null
 
 // R5: the viewer's own locale and time zone order the parts — dd/mm for EU locales,
 // and the full UTC value stays on the <time datetime> attribute.
@@ -41,7 +42,10 @@ const newestFirst = (items) =>
     (a, b) => Date.parse(b.openedAt) - Date.parse(a.openedAt) || a.id.localeCompare(b.id),
   );
 
-// R2: a row offers Ack; once the ack is through it carries the acked mark instead.
+// R2, as product decided on 2026-11-14T20:52:10Z: a row offers Ack; Ack asks to confirm, and the confirm
+// names the incident id; only the confirm sends the ack. The ask is built inside the row's own `.act`, so
+// it stays on the row and travels with it when the list moves. Once the ack is through the row carries the
+// acked mark instead.
 function renderAction(id, li) {
   const act = li.querySelector('.act');
   const done = acked.get(id);
@@ -56,14 +60,70 @@ function renderAction(id, li) {
     li.classList.add('is-acked');
     return;
   }
+  if (confirming === id) {
+    renderConfirm(id, li); // a self-refresh must not close an ask the person is reading
+    return;
+  }
   const button = document.createElement('button');
   button.type = 'button';
   button.setAttribute('data-testid', 'ack');
   button.className = 'ack';
   button.textContent = 'Ack';
-  button.addEventListener('click', () => takeAck(id, button));
+  button.addEventListener('click', () => askAck(id));
   act.replaceChildren(button);
 }
+
+// R2 (as amended): Ack does not ack. It opens the ask for that one row — naming the id it was clicked on.
+function askAck(id) {
+  const open = confirming;
+  if (open && open !== id) closeConfirm(open);
+  confirming = id;
+  const li = rows.get(id);
+  if (!li) return;
+  li.classList.add('is-confirming');
+  renderConfirm(id, li);
+  const inc = incidents.get(id) || {};
+  setStatus(`ack ${id}? — ${inc.service || 'this incident'}: confirm names the incident before it acks`, 'fresh');
+}
+
+function renderConfirm(id, li) {
+  const inc = incidents.get(id) || {};
+  const act = li.querySelector('.act');
+  const box = document.createElement('span');
+  box.className = 'confirm';
+  box.setAttribute('data-testid', 'confirm');
+  box.setAttribute('data-id', id);
+  const ask = document.createElement('span');
+  ask.className = 'confirm-q';
+  ask.textContent = `Ack ${id}? ${inc.service || ''} · ${inc.severity || ''}`.replace(/\s+/g, ' ');
+  const yes = document.createElement('button');
+  yes.type = 'button';
+  yes.className = 'confirm-ack';
+  yes.setAttribute('data-testid', 'confirm-ack');
+  yes.textContent = `Ack ${id}`; // the id again, on the control that commits
+  yes.addEventListener('click', () => takeAck(id, yes));
+  const no = document.createElement('button');
+  no.type = 'button';
+  no.className = 'confirm-cancel';
+  no.setAttribute('data-testid', 'confirm-cancel');
+  no.textContent = 'Cancel';
+  no.addEventListener('click', () => closeConfirm(id));
+  box.append(ask, yes, no);
+  act.replaceChildren(box);
+}
+
+function closeConfirm(id) {
+  if (confirming === id) confirming = null;
+  const li = rows.get(id);
+  if (!li) return;
+  li.classList.remove('is-confirming');
+  renderAction(id, li);
+}
+
+// R2 (as amended): Escape is the same as Cancel, so the ask never traps a hand that moved on.
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && confirming) closeConfirm(confirming);
+});
 
 function createRow(inc) {
   const li = document.createElement('li');
@@ -99,6 +159,7 @@ function updateRow(li, inc) {
   when.textContent = localTime.format(new Date(inc.openedAt)); // R5: shown in the viewer's zone
 }
 
+// R2 (as amended): this is the commit — reached only from the confirm, which named the id it acks.
 async function takeAck(id, button) {
   if (button.disabled) return;
   button.disabled = true;
@@ -106,13 +167,18 @@ async function takeAck(id, button) {
   try {
     const reply = await ack(id); // api.js holds the latest cursor the ack needs
     acked.set(id, reply);
+    confirming = null;
     console.info('acked', reply.id, reply.ackedAt, reply.receipt);
-    renderAction(id, rows.get(id));
+    const li = rows.get(id);
+    if (li) li.classList.remove('is-confirming');
+    renderAction(id, li);
     showReceipt(reply);
     setStatus(`acked ${reply.id} at ${localTime.format(new Date(reply.ackedAt))}`, 'ok');
   } catch (err) {
-    button.disabled = false;
-    button.textContent = 'Ack';
+    confirming = null;
+    const li = rows.get(id);
+    if (li) li.classList.remove('is-confirming');
+    renderAction(id, li); // the row offers Ack again; nothing was sent
     setStatus(`ack failed: ${err.message}`, 'bad');
   }
 }
