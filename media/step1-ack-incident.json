@@ -1,0 +1,395 @@
+{
+  "flow": "ack-incident",
+  "url": "https://sabakp01.github.io/show-me-when-board/",
+  "fps": 5,
+  "startedAt": "2026-11-14T18:43:57.805Z",
+  "frames": [
+    {
+      "name": "frame-0001.png",
+      "at": "2026-11-14T18:43:59.465Z",
+      "ms": 1794681839465,
+      "note": "board opening",
+      "elapsedS": 0
+    },
+    {
+      "name": "frame-0002.png",
+      "at": "2026-11-14T18:43:59.671Z",
+      "ms": 1794681839671,
+      "note": "waiting for the first incidents",
+      "elapsedS": 0.21
+    },
+    {
+      "name": "frame-0003.png",
+      "at": "2026-11-14T18:43:59.883Z",
+      "ms": 1794681839883,
+      "note": "8 incidents on the board, watching",
+      "elapsedS": 0.42
+    },
+    {
+      "name": "frame-0004.png",
+      "at": "2026-11-14T18:44:00.087Z",
+      "ms": 1794681840087,
+      "note": "8 incidents on the board, watching",
+      "elapsedS": 0.62
+    },
+    {
+      "name": "frame-0005.png",
+      "at": "2026-11-14T18:44:00.295Z",
+      "ms": 1794681840295,
+      "note": "8 incidents on the board, watching",
+      "elapsedS": 0.83
+    },
+    {
+      "name": "frame-0006.png",
+      "at": "2026-11-14T18:44:00.508Z",
+      "ms": 1794681840508,
+      "note": "8 incidents on the board, watching",
+      "elapsedS": 1.04
+    },
+    {
+      "name": "frame-0007.png",
+      "at": "2026-11-14T18:44:00.709Z",
+      "ms": 1794681840709,
+      "note": "8 incidents on the board, watching",
+      "elapsedS": 1.24
+    },
+    {
+      "name": "frame-0008.png",
+      "at": "2026-11-14T18:44:00.912Z",
+      "ms": 1794681840912,
+      "note": "8 incidents on the board, watching",
+      "elapsedS": 1.45
+    },
+    {
+      "name": "frame-0009.png",
+      "at": "2026-11-14T18:44:01.122Z",
+      "ms": 1794681841122,
+      "note": "8 incidents on the board, watching",
+      "elapsedS": 1.66
+    },
+    {
+      "name": "frame-0010.png",
+      "at": "2026-11-14T18:44:01.324Z",
+      "ms": 1794681841324,
+      "note": "8 incidents on the board, watching",
+      "elapsedS": 1.86
+    },
+    {
+      "name": "frame-0011.png",
+      "at": "2026-11-14T18:44:01.533Z",
+      "ms": 1794681841533,
+      "note": "8 incidents on the board, watching",
+      "elapsedS": 2.07
+    },
+    {
+      "name": "frame-0012.png",
+      "at": "2026-11-14T18:44:01.733Z",
+      "ms": 1794681841733,
+      "note": "Ack pressed on INC-3856",
+      "elapsedS": 2.27
+    },
+    {
+      "name": "frame-0013.png",
+      "at": "2026-11-14T18:44:01.945Z",
+      "ms": 1794681841945,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 2.48
+    },
+    {
+      "name": "frame-0014.png",
+      "at": "2026-11-14T18:44:02.158Z",
+      "ms": 1794681842158,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 2.69
+    },
+    {
+      "name": "frame-0015.png",
+      "at": "2026-11-14T18:44:02.361Z",
+      "ms": 1794681842361,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 2.9
+    },
+    {
+      "name": "frame-0016.png",
+      "at": "2026-11-14T18:44:02.562Z",
+      "ms": 1794681842562,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 3.1
+    },
+    {
+      "name": "frame-0017.png",
+      "at": "2026-11-14T18:44:02.774Z",
+      "ms": 1794681842774,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 3.31
+    },
+    {
+      "name": "frame-0018.png",
+      "at": "2026-11-14T18:44:02.987Z",
+      "ms": 1794681842987,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 3.52
+    },
+    {
+      "name": "frame-0019.png",
+      "at": "2026-11-14T18:44:03.195Z",
+      "ms": 1794681843195,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 3.73
+    },
+    {
+      "name": "frame-0020.png",
+      "at": "2026-11-14T18:44:03.398Z",
+      "ms": 1794681843398,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 3.93
+    },
+    {
+      "name": "frame-0021.png",
+      "at": "2026-11-14T18:44:03.607Z",
+      "ms": 1794681843607,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 4.14
+    },
+    {
+      "name": "frame-0022.png",
+      "at": "2026-11-14T18:44:03.807Z",
+      "ms": 1794681843807,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 4.34
+    },
+    {
+      "name": "frame-0023.png",
+      "at": "2026-11-14T18:44:04.011Z",
+      "ms": 1794681844011,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 4.55
+    },
+    {
+      "name": "frame-0024.png",
+      "at": "2026-11-14T18:44:04.213Z",
+      "ms": 1794681844213,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 4.75
+    },
+    {
+      "name": "frame-0025.png",
+      "at": "2026-11-14T18:44:04.428Z",
+      "ms": 1794681844428,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 4.96
+    },
+    {
+      "name": "frame-0026.png",
+      "at": "2026-11-14T18:44:04.636Z",
+      "ms": 1794681844636,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 5.17
+    },
+    {
+      "name": "frame-0027.png",
+      "at": "2026-11-14T18:44:04.849Z",
+      "ms": 1794681844849,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 5.38
+    },
+    {
+      "name": "frame-0028.png",
+      "at": "2026-11-14T18:44:05.048Z",
+      "ms": 1794681845048,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 5.58
+    },
+    {
+      "name": "frame-0029.png",
+      "at": "2026-11-14T18:44:05.253Z",
+      "ms": 1794681845253,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 5.79
+    },
+    {
+      "name": "frame-0030.png",
+      "at": "2026-11-14T18:44:05.453Z",
+      "ms": 1794681845453,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 5.99
+    },
+    {
+      "name": "frame-0031.png",
+      "at": "2026-11-14T18:44:05.667Z",
+      "ms": 1794681845667,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 6.2
+    },
+    {
+      "name": "frame-0032.png",
+      "at": "2026-11-14T18:44:05.870Z",
+      "ms": 1794681845870,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 6.41
+    },
+    {
+      "name": "frame-0033.png",
+      "at": "2026-11-14T18:44:06.071Z",
+      "ms": 1794681846071,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 6.61
+    },
+    {
+      "name": "frame-0034.png",
+      "at": "2026-11-14T18:44:06.274Z",
+      "ms": 1794681846274,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 6.81
+    },
+    {
+      "name": "frame-0035.png",
+      "at": "2026-11-14T18:44:06.478Z",
+      "ms": 1794681846478,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 7.01
+    },
+    {
+      "name": "frame-0036.png",
+      "at": "2026-11-14T18:44:06.682Z",
+      "ms": 1794681846682,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 7.22
+    },
+    {
+      "name": "frame-0037.png",
+      "at": "2026-11-14T18:44:06.884Z",
+      "ms": 1794681846884,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 7.42
+    },
+    {
+      "name": "frame-0038.png",
+      "at": "2026-11-14T18:44:07.087Z",
+      "ms": 1794681847087,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 7.62
+    },
+    {
+      "name": "frame-0039.png",
+      "at": "2026-11-14T18:44:07.291Z",
+      "ms": 1794681847291,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 7.83
+    },
+    {
+      "name": "frame-0040.png",
+      "at": "2026-11-14T18:44:07.506Z",
+      "ms": 1794681847506,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 8.04
+    },
+    {
+      "name": "frame-0041.png",
+      "at": "2026-11-14T18:44:07.709Z",
+      "ms": 1794681847709,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 8.24
+    },
+    {
+      "name": "frame-0042.png",
+      "at": "2026-11-14T18:44:07.913Z",
+      "ms": 1794681847913,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 8.45
+    },
+    {
+      "name": "frame-0043.png",
+      "at": "2026-11-14T18:44:08.116Z",
+      "ms": 1794681848116,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 8.65
+    },
+    {
+      "name": "frame-0044.png",
+      "at": "2026-11-14T18:44:08.320Z",
+      "ms": 1794681848320,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 8.86
+    },
+    {
+      "name": "frame-0045.png",
+      "at": "2026-11-14T18:44:08.521Z",
+      "ms": 1794681848521,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 9.06
+    },
+    {
+      "name": "frame-0046.png",
+      "at": "2026-11-14T18:44:08.726Z",
+      "ms": 1794681848726,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 9.26
+    },
+    {
+      "name": "frame-0047.png",
+      "at": "2026-11-14T18:44:08.932Z",
+      "ms": 1794681848932,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 9.47
+    },
+    {
+      "name": "frame-0048.png",
+      "at": "2026-11-14T18:44:09.136Z",
+      "ms": 1794681849136,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 9.67
+    },
+    {
+      "name": "frame-0049.png",
+      "at": "2026-11-14T18:44:09.341Z",
+      "ms": 1794681849341,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 9.88
+    },
+    {
+      "name": "frame-0050.png",
+      "at": "2026-11-14T18:44:09.551Z",
+      "ms": 1794681849551,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 10.09
+    },
+    {
+      "name": "frame-0051.png",
+      "at": "2026-11-14T18:44:09.752Z",
+      "ms": 1794681849752,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 10.29
+    },
+    {
+      "name": "frame-0052.png",
+      "at": "2026-11-14T18:44:09.960Z",
+      "ms": 1794681849960,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 10.49
+    },
+    {
+      "name": "frame-0053.png",
+      "at": "2026-11-14T18:44:10.172Z",
+      "ms": 1794681850172,
+      "note": "INC-3856 shows acked - receipt on screen",
+      "elapsedS": 10.71
+    },
+    {
+      "name": "frame-0054.png",
+      "at": "2026-11-14T18:44:10.185Z",
+      "ms": 1794681850185,
+      "note": "end of take",
+      "elapsedS": 10.72
+    }
+  ],
+  "outDir": "C:\\Users\\admin\\Desktop\\course\\show-me-when\\.tmp\\take-ack",
+  "acked": {
+    "id": "INC-3856",
+    "at": "2026-11-14T18:44:01.546Z"
+  },
+  "receipt": "a1.xeB5iTf4N7Qy8sFU.hgStkL8gXENU4YfRnF31edpurswsrY5nPM3d3-2igmEOKRifzop5JeA-c0_kY67TWm--F9CbgVGlBKC7keZjX1ZbhfMamlg-hKGDpByZWKeEGZcpB-wyQImYT5i5QC2Y0Ak3KwXvLmCa8FaMvbo5iVtvEsUkSN1h50bFNLtKvUV0WBLaK9__AoLHaBJSiW8kWNs",
+  "changeFrame": 12,
+  "at": "00:02",
+  "finishedAt": "2026-11-14T18:44:10.195Z"
+}
