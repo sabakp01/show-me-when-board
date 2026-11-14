@@ -32,6 +32,11 @@ if (!['ack-incident', 'watch-board'].includes(flow)) {
   process.exit(2);
 }
 const fps = Math.max(1, Number(opts.fps || 5));
+// Waiting for an incident to land takes minutes; a take nobody wants to sit through proves nothing
+// either. So the camera runs slow (1 frame/s) while it waits and switches to `fps` the moment there
+// is something to see. Each frame carries its real timestamp, and the video is cut at those times,
+// so the switch is honest: the timecode keeps running at wall-clock speed.
+const slowFps = Math.max(1, Number(opts.slowfps || 1));
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 const outDir = opts.out ? resolve(opts.out) : resolve('..', '.tmp', `take-${flow}-${stamp}`);
 const framesDir = resolve(outDir, 'frames');
@@ -83,18 +88,31 @@ let receipt = null;
 let changeFrame = null; // the frame where the flow's state change is on screen
 let note = 'board opening';
 
-// A take you can point at: two seconds of board first, then the click, then eight seconds watching
-// the acked row survive the board's own 2s refreshes.
+// A take you can point at. For `ack-incident` that means a race, and not against the board: the
+// camera opens on the board as it stands, and the recorder waits — up to --watch seconds, the API
+// here emits one incident every ~7 minutes — until an incident that was NOT on screen when the
+// camera opened arrives on camera. Only then is Ack pressed, on that row, seconds after it landed.
+// A take where the newest row merely happens to be recent proves nothing: it was already there when
+// the recording started, so nothing landed on screen. Then eight seconds watching the acked row
+// survive the board's own 2s refreshes.
 const leadFrames = flow === 'ack-incident' ? fps * 2 : 2;
 const tailFrames = fps * (flow === 'ack-incident' ? 8 : 4);
-const watchFor = flow === 'ack-incident' ? 200 : 60;
+const watchS = Number(opts.watch || (flow === 'ack-incident' ? 900 : 60));
+const waitUntil = Date.now() + watchS * 1000; // wall clock to stop watching at — the camera paces itself, so frames do not decide
+const maxFrames = 30000; // a guard against a runaway loop, not the plan
 let statusBefore = '';
+let initialIds = null; // ids on screen when the camera opened — a landing is a row outside this set
+let landed = null; // the incident that arrived on camera, and when
 
 try {
   await ff.start();
   await ff.url(url);
 
-  for (let i = 0; i < watchFor; i++) {
+  for (let i = 0; i < maxFrames; i++) {
+    if (!clicked && Date.now() > waitUntil) {
+      note = `giving up: no incident landed within ${watchS}s of watching`;
+      break;
+    }
     const spent = Date.now();
     await grab(note);
     if (firstAtMs === null) firstAtMs = take.frames[0].ms;
@@ -103,6 +121,8 @@ try {
       rows: [...document.querySelectorAll('[data-testid="incident-row"]')].map(li => ({
         id: li.dataset.id,
         acked: !!li.querySelector('[data-testid="acked"]'),
+        openedAt: (li.querySelector('time') || {}).getAttribute
+          ? li.querySelector('time').getAttribute('datetime') : null,
         receipt: (li.querySelector('[data-testid="acked"]') || {}).getAttribute
           ? li.querySelector('[data-testid="acked"]').getAttribute('data-receipt') : null,
       })),
@@ -113,22 +133,34 @@ try {
     now.rows.forEach((r) => seen.add(r.id));
 
     if (flow === 'ack-incident') {
+      if (initialIds === null && now.rows.length) initialIds = new Set(now.rows.map((r) => r.id));
+      const arrivals = initialIds ? now.rows.filter((r) => !initialIds.has(r.id)) : [];
       if (!clicked) {
-        if (frame <= leadFrames) {
-          note = now.rows.length ? `${now.rows.length} incidents on the board, watching` : 'waiting for the first incidents';
+        const fresh = arrivals.find((r) => !r.acked);
+        if (!fresh) {
+          const watchedS = firstAtMs ? Math.round((take.frames[frame - 1].ms - firstAtMs) / 1000) : 0;
+          note = now.rows.length
+            ? `${now.rows.length} incidents on the board, none new yet — watching ${watchedS}s of ${watchS}s`
+            : 'waiting for the board to answer';
         } else {
-          const open = now.rows.find((r) => !r.acked);
-          if (open) {
-            const clickedId = await ff.js(`const li = document.querySelector('[data-testid="incident-row"][data-id="${open.id}"]');
-              const b = li && li.querySelector('[data-testid="ack"]');
-              if (!b) return null; b.click(); return li.dataset.id;`);
-            if (clickedId) {
-              clicked = { id: clickedId, at: new Date().toISOString() };
-              take.acked = clicked;
-              note = `Ack pressed on ${clickedId}`;
-            }
+          // This row was not on screen when the camera opened: it landed on camera. Ack it now.
+          landed = {
+            id: fresh.id,
+            openedAt: fresh.openedAt,
+            frame,
+            onCameraAt: take.frames[frame - 1].at,
+            ageOnCameraS: Number(((Date.now() - Date.parse(fresh.openedAt)) / 1000).toFixed(1)),
+          };
+          take.landed = landed;
+          const clickedId = await ff.js(`const li = document.querySelector('[data-testid="incident-row"][data-id="${fresh.id}"]');
+            const b = li && li.querySelector('[data-testid="ack"]');
+            if (!b) return null; b.click(); return li.dataset.id;`);
+          if (clickedId) {
+            clicked = { id: clickedId, at: new Date().toISOString(), ageAtClickS: landed.ageOnCameraS };
+            take.acked = clicked;
+            note = `${fresh.id} landed on camera ${landed.ageOnCameraS}s after it opened — Ack pressed on it`;
           } else {
-            note = 'waiting for a row that still offers Ack';
+            note = `${fresh.id} landed but its row offered no Ack button`;
           }
         }
       } else if (!changeFrame) {
@@ -153,7 +185,8 @@ try {
     }
 
     const cost = Date.now() - spent;
-    await sleep(Math.max(30, frameMs - cost));
+    const pace = flow === 'ack-incident' && !clicked ? slowFps : fps; // slow while waiting, fast once it lands
+    await sleep(Math.max(30, Math.round(1000 / pace) - cost));
   }
 
   await grab('end of take');
@@ -162,11 +195,16 @@ try {
 }
 
 take.frames.forEach((f, i) => (f.elapsedS = Number(((f.ms - firstAtMs) / 1000).toFixed(2))));
+const mmss = (s) => {
+  const t = Math.max(0, Math.round(s));
+  return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+};
 take.receipt = receipt;
 take.changeFrame = changeFrame;
-take.at = changeFrame
-  ? `${String(Math.floor(take.frames[changeFrame - 1].elapsedS / 60)).padStart(2, '0')}:${String(Math.round(take.frames[changeFrame - 1].elapsedS % 60)).padStart(2, '0')}`
-  : null;
+take.at = changeFrame ? mmss(take.frames[changeFrame - 1].elapsedS) : null;
+take.atLanded = landed ? mmss(take.frames[landed.frame - 1].elapsedS) : null;
+take.atClicked = clicked && firstAtMs ? mmss((Date.parse(clicked.at) - firstAtMs) / 1000) : null;
+take.landedFramesBefore = landed ? landed.frame - 1 : null; // frames showing the board WITHOUT the row, before it lands
 take.finishedAt = new Date().toISOString();
 
 // --- cut the video -------------------------------------------------------------
@@ -206,6 +244,13 @@ const secs = take.frames.length ? take.frames[take.frames.length - 1].elapsedS :
 console.log(`take: ${take.frames.length} frames over ${secs}s from Firefox at ${url}`);
 console.log(`take: video ${video}`);
 console.log(`take: detail ${resolve(outDir, 'take.json')}`);
+if (take.landed) {
+  console.log(`take: ${take.landed.id} opened ${take.landed.openedAt}; not on screen for the first ${take.landedFramesBefore} frames; first on camera at ${take.atLanded}, ${take.landed.ageOnCameraS}s after it opened`);
+  console.log(`take: Ack pressed on it at ${take.atClicked}, ${take.acked.ageAtClickS}s after it opened`);
+}
 console.log(take.at ? `take: state change on screen at ${take.at} (${take.frames[changeFrame - 1].at})` : 'take: no state change seen');
-console.log(take.at ? `result: ok` : `result: FAIL`);
-process.exit(take.at ? 0 : 1);
+// For this flow the proof is the pair: an incident that arrived while the camera was running, and the
+// ack on that row. One without the other is what got the first take refused.
+const proofed = take.at && take.landed && take.acked && take.landed.id === take.acked.id;
+console.log(proofed ? `result: ok` : `result: FAIL — ${take.landed ? 'acked row is not the row that landed' : 'no incident landed on camera in this take'}`);
+process.exit(proofed ? 0 : 1);
