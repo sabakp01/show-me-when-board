@@ -86,6 +86,7 @@ let firstAtMs = null;
 let clicked = null; // the incident this take acks
 let receipt = null;
 let changeFrame = null; // the frame where the flow's state change is on screen
+const receiptsBefore = new Set(); // receipts already on the board before this take clicked
 let note = 'board opening';
 
 // A take you can point at. For `ack-incident` that means a race, and not against the board: the
@@ -103,6 +104,9 @@ const maxFrames = 30000; // a guard against a runaway loop, not the plan
 let statusBefore = '';
 let initialIds = null; // ids on screen when the camera opened — a landing is a row outside this set
 let landed = null; // the incident that arrived on camera, and when
+let expected = null; // the incident this take means to ack: the one that landed
+let got = null; // the incident the board actually shows acked, with a receipt it did not have before
+
 
 try {
   await ff.start();
@@ -131,6 +135,12 @@ try {
     if (!statusBefore) statusBefore = now.status;
     const fresh = now.rows.filter((r) => !seen.has(r.id)).map((r) => r.id);
     now.rows.forEach((r) => seen.add(r.id));
+    // Receipts the board already had before this take's click. A row showing one of these is an ack
+    // from an earlier take, not the ack this take is reporting.
+    if (!clicked) now.rows.forEach((r) => { if (r.receipt) receiptsBefore.add(r.receipt); });
+    const newlyAcked = clicked
+      ? now.rows.filter((r) => r.acked && r.receipt && !receiptsBefore.has(r.receipt))
+      : [];
 
     if (flow === 'ack-incident') {
       if (initialIds === null && now.rows.length) initialIds = new Set(now.rows.map((r) => r.id));
@@ -165,10 +175,18 @@ try {
         }
       } else if (!changeFrame) {
         const row = now.rows.find((r) => r.id === clicked.id);
-        if (row && row.acked) {
+        if (row && row.acked && row.receipt && !receiptsBefore.has(row.receipt)) {
           changeFrame = frame;
           receipt = row.receipt;
-          note = `${clicked.id} shows acked - receipt on screen`;
+          // The row this take MEANT is the one that landed on camera. Who actually GOT the ack is read
+          // off the board: every row carrying a receipt the board did not have before the click.
+          expected = clicked.id;
+          got = newlyAcked.map((r) => r.id);
+          take.expected = expected;
+          take.got = got;
+          note = got.length === 1 && got[0] === expected
+            ? `${expected} shows acked — the new receipt is on that row and on no other`
+            : `new receipt on ${got.length ? got.join(', ') : 'no row'}; this take meant ${expected}`;
         } else {
           note = `waiting for ${clicked.id} to come back acked`;
         }
@@ -245,12 +263,16 @@ console.log(`take: ${take.frames.length} frames over ${secs}s from Firefox at ${
 console.log(`take: video ${video}`);
 console.log(`take: detail ${resolve(outDir, 'take.json')}`);
 if (take.landed) {
-  console.log(`take: ${take.landed.id} opened ${take.landed.openedAt}; not on screen for the first ${take.landedFramesBefore} frames; first on camera at ${take.atLanded}, ${take.landed.ageOnCameraS}s after it opened`);
+  console.log(`take: ${take.landed.id} opened ${take.landed.openedAt}; not on screen for the first ${take.landedFramesBefore} frames; first on camera at ${take.atLanded}`);
   console.log(`take: Ack pressed on it at ${take.atClicked}, ${take.acked.ageAtClickS}s after it opened`);
 }
 console.log(take.at ? `take: state change on screen at ${take.at} (${take.frames[changeFrame - 1].at})` : 'take: no state change seen');
-// For this flow the proof is the pair: an incident that arrived while the camera was running, and the
-// ack on that row. One without the other is what got the first take refused.
-const proofed = take.at && take.landed && take.acked && take.landed.id === take.acked.id;
-console.log(proofed ? `result: ok` : `result: FAIL — ${take.landed ? 'acked row is not the row that landed' : 'no incident landed on camera in this take'}`);
+// One row, one value: this take names the row it meant and the row the board shows acked. Anything
+// other than one row carrying the new receipt is a FAIL, not a report.
+const oneRow = Array.isArray(take.got) && take.got.length === 1 && take.expected && take.got[0] === take.expected;
+console.log(`take: expected ${take.expected || 'none'}; got ${Array.isArray(take.got) ? take.got.join(', ') || 'none' : 'none'}`);
+const proofed = take.at && take.landed && take.acked && take.landed.id === take.expected && oneRow;
+console.log(proofed
+  ? `result: ok`
+  : `result: FAIL — ${!take.landed ? 'no incident landed on camera in this take' : !oneRow ? 'the new receipt is not on exactly the row this take meant' : 'no ack visible on screen'}`);
 process.exit(proofed ? 0 : 1);
