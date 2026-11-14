@@ -3,3 +3,7 @@ test-results/
 playwright-report/
 .tmp/
 npm-debug.log*
+
+# This board's session token lives here, filled by scripts/stamp.mjs from session.txt (local)
+# or the BOARD_SESSION deploy secret (Actions). It is what the page sends to the API as ?t=.
+app/config.js

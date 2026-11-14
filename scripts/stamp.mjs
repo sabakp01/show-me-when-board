@@ -53,18 +53,9 @@ if (check) {
   process.exit(problems.length ? 1 : 0);
 }
 
-if (!existsSync(sessionFile)) {
-  // On a build runner there is no session file: the filled app/config.js is what ships.
-  const config = existsSync(configPath) ? readFileSync(configPath, 'utf8') : '';
-  if (!/export const SESSION = 'v1\./.test(config)) {
-    console.error(`stamp: no session file at ${sessionFile} and app/config.js holds no session`);
-    process.exit(2);
-  }
-  console.log(`stamp: keeping the session already in app/config.js`);
-} else {
-  const session = readFileSync(sessionFile, 'utf8').trim();
+const writeConfig = (session, from) => {
   if (!session.startsWith('v1.')) {
-    console.error(`stamp: ${sessionFile} does not hold a session token`);
+    console.error(`stamp: the session read from ${from} is not a session token`);
     process.exit(2);
   }
   writeFileSync(
@@ -74,6 +65,24 @@ if (!existsSync(sessionFile)) {
       `export const API = '${API}';\n` +
       `export const SESSION = '${session}';\n`,
   );
+  console.log(`stamp: session read from ${from}`);
+};
+
+// A build runner has no session file: it gets the session as the BOARD_SESSION secret, and the
+// file it writes is gitignored — the token never travels in git history, only in the built page.
+const envSession = (process.env.BOARD_SESSION || '').trim();
+if (envSession) {
+  writeConfig(envSession, 'the BOARD_SESSION secret');
+} else if (existsSync(sessionFile)) {
+  writeConfig(readFileSync(sessionFile, 'utf8').trim(), sessionFile);
+} else {
+  // Nothing new to read: a filled app/config.js already on disk is what ships.
+  const config = existsSync(configPath) ? readFileSync(configPath, 'utf8') : '';
+  if (!/export const SESSION = 'v1\./.test(config)) {
+    console.error(`stamp: no BOARD_SESSION, no session file at ${sessionFile}, and app/config.js holds no session`);
+    process.exit(2);
+  }
+  console.log('stamp: keeping the session already in app/config.js');
 }
 
 let html = readFileSync(htmlPath, 'utf8');

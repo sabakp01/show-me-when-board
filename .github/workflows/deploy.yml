@@ -19,9 +19,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Name the build with the sha this run built
+        env:
+          BOARD_SESSION: ${{ secrets.BOARD_SESSION }}
         run: |
           node scripts/stamp.mjs --sha "$GITHUB_SHA"
           grep -c "$GITHUB_SHA" app/index.html
+          grep -q "export const SESSION = 'v1\." app/config.js
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
