@@ -1,0 +1,662 @@
+{
+  "flow": "ack-incident",
+  "url": "https://sabakp01.github.io/show-me-when-board/",
+  "fps": 5,
+  "startedAt": "2026-11-14T20:34:51.823Z",
+  "frames": [
+    {
+      "name": "frame-0001.png",
+      "at": "2026-11-14T20:34:53.546Z",
+      "ms": 1794688493546,
+      "note": "board opening",
+      "elapsedS": 0
+    },
+    {
+      "name": "frame-0002.png",
+      "at": "2026-11-14T20:34:54.551Z",
+      "ms": 1794688494551,
+      "note": "waiting for the board to answer",
+      "elapsedS": 1
+    },
+    {
+      "name": "frame-0003.png",
+      "at": "2026-11-14T20:34:54.712Z",
+      "ms": 1794688494712,
+      "note": "pointer moving to INC-3403's Ack at 233,49",
+      "elapsedS": 1.17
+    },
+    {
+      "name": "frame-0004.png",
+      "at": "2026-11-14T20:34:54.865Z",
+      "ms": 1794688494865,
+      "note": "pointer moving to INC-3403's Ack at 473,93",
+      "elapsedS": 1.32
+    },
+    {
+      "name": "frame-0005.png",
+      "at": "2026-11-14T20:34:55.015Z",
+      "ms": 1794688495015,
+      "note": "pointer moving to INC-3403's Ack at 706,140",
+      "elapsedS": 1.47
+    },
+    {
+      "name": "frame-0006.png",
+      "at": "2026-11-14T20:34:55.265Z",
+      "ms": 1794688495265,
+      "note": "pointer rests on INC-3403's Ack at 945,181",
+      "elapsedS": 1.72
+    },
+    {
+      "name": "frame-0007.png",
+      "at": "2026-11-14T20:34:55.556Z",
+      "ms": 1794688495556,
+      "note": "8 incidents on the board; the pointer rests on INC-3403's Ack and only trembles — 2s of 900s waiting for the board to move a row under it",
+      "elapsedS": 2.01
+    },
+    {
+      "name": "frame-0008.png",
+      "at": "2026-11-14T20:34:56.561Z",
+      "ms": 1794688496561,
+      "note": "8 incidents on the board; the pointer rests on INC-3403's Ack and only trembles — 2s of 900s waiting for the board to move a row under it",
+      "elapsedS": 3.02
+    },
+    {
+      "name": "frame-0009.png",
+      "at": "2026-11-14T20:34:57.562Z",
+      "ms": 1794688497562,
+      "note": "8 incidents on the board; the pointer rests on INC-3403's Ack and only trembles — 3s of 900s waiting for the board to move a row under it",
+      "elapsedS": 4.02
+    },
+    {
+      "name": "frame-0010.png",
+      "at": "2026-11-14T20:34:58.575Z",
+      "ms": 1794688498575,
+      "note": "8 incidents on the board; the pointer rests on INC-3403's Ack and only trembles — 4s of 900s waiting for the board to move a row under it",
+      "elapsedS": 5.03
+    },
+    {
+      "name": "frame-0011.png",
+      "at": "2026-11-14T20:34:59.579Z",
+      "ms": 1794688499579,
+      "note": "8 incidents on the board; the pointer rests on INC-3403's Ack and only trembles — 5s of 900s waiting for the board to move a row under it",
+      "elapsedS": 6.03
+    },
+    {
+      "name": "frame-0012.png",
+      "at": "2026-11-14T20:35:00.582Z",
+      "ms": 1794688500582,
+      "note": "8 incidents on the board; the pointer rests on INC-3403's Ack and only trembles — 6s of 900s waiting for the board to move a row under it",
+      "elapsedS": 7.04
+    },
+    {
+      "name": "frame-0013.png",
+      "at": "2026-11-14T20:35:01.595Z",
+      "ms": 1794688501595,
+      "note": "8 incidents on the board; the pointer rests on INC-3403's Ack and only trembles — 7s of 900s waiting for the board to move a row under it",
+      "elapsedS": 8.05
+    },
+    {
+      "name": "frame-0014.png",
+      "at": "2026-11-14T20:35:01.690Z",
+      "ms": 1794688501690,
+      "note": "primary button down and up at 945,181 — the coordinates parked at 2026-11-14T20:34:55.274Z",
+      "elapsedS": 8.14
+    },
+    {
+      "name": "frame-0015.png",
+      "at": "2026-11-14T20:35:01.895Z",
+      "ms": 1794688501895,
+      "note": "the Ack at 945,181 went down — those are INC-3403's coordinates, measured before INC-4544 arrived, and the press is 0s after it opened",
+      "elapsedS": 8.35
+    },
+    {
+      "name": "frame-0016.png",
+      "at": "2026-11-14T20:35:02.099Z",
+      "ms": 1794688502099,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 8.55
+    },
+    {
+      "name": "frame-0017.png",
+      "at": "2026-11-14T20:35:02.311Z",
+      "ms": 1794688502311,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 8.77
+    },
+    {
+      "name": "frame-0018.png",
+      "at": "2026-11-14T20:35:02.511Z",
+      "ms": 1794688502511,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 8.96
+    },
+    {
+      "name": "frame-0019.png",
+      "at": "2026-11-14T20:35:02.724Z",
+      "ms": 1794688502724,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 9.18
+    },
+    {
+      "name": "frame-0020.png",
+      "at": "2026-11-14T20:35:02.924Z",
+      "ms": 1794688502924,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 9.38
+    },
+    {
+      "name": "frame-0021.png",
+      "at": "2026-11-14T20:35:03.140Z",
+      "ms": 1794688503140,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 9.59
+    },
+    {
+      "name": "frame-0022.png",
+      "at": "2026-11-14T20:35:03.348Z",
+      "ms": 1794688503349,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 9.8
+    },
+    {
+      "name": "frame-0023.png",
+      "at": "2026-11-14T20:35:03.553Z",
+      "ms": 1794688503553,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 10.01
+    },
+    {
+      "name": "frame-0024.png",
+      "at": "2026-11-14T20:35:03.761Z",
+      "ms": 1794688503761,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 10.21
+    },
+    {
+      "name": "frame-0025.png",
+      "at": "2026-11-14T20:35:03.965Z",
+      "ms": 1794688503965,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 10.42
+    },
+    {
+      "name": "frame-0026.png",
+      "at": "2026-11-14T20:35:04.165Z",
+      "ms": 1794688504165,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 10.62
+    },
+    {
+      "name": "frame-0027.png",
+      "at": "2026-11-14T20:35:04.377Z",
+      "ms": 1794688504377,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 10.83
+    },
+    {
+      "name": "frame-0028.png",
+      "at": "2026-11-14T20:35:04.588Z",
+      "ms": 1794688504588,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 11.04
+    },
+    {
+      "name": "frame-0029.png",
+      "at": "2026-11-14T20:35:04.798Z",
+      "ms": 1794688504798,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 11.25
+    },
+    {
+      "name": "frame-0030.png",
+      "at": "2026-11-14T20:35:05.006Z",
+      "ms": 1794688505006,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 11.46
+    },
+    {
+      "name": "frame-0031.png",
+      "at": "2026-11-14T20:35:05.215Z",
+      "ms": 1794688505215,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 11.67
+    },
+    {
+      "name": "frame-0032.png",
+      "at": "2026-11-14T20:35:05.419Z",
+      "ms": 1794688505419,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 11.87
+    },
+    {
+      "name": "frame-0033.png",
+      "at": "2026-11-14T20:35:05.627Z",
+      "ms": 1794688505627,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 12.08
+    },
+    {
+      "name": "frame-0034.png",
+      "at": "2026-11-14T20:35:05.836Z",
+      "ms": 1794688505836,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 12.29
+    },
+    {
+      "name": "frame-0035.png",
+      "at": "2026-11-14T20:35:06.039Z",
+      "ms": 1794688506039,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 12.49
+    },
+    {
+      "name": "frame-0036.png",
+      "at": "2026-11-14T20:35:06.252Z",
+      "ms": 1794688506252,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 12.71
+    },
+    {
+      "name": "frame-0037.png",
+      "at": "2026-11-14T20:35:06.460Z",
+      "ms": 1794688506460,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 12.91
+    },
+    {
+      "name": "frame-0038.png",
+      "at": "2026-11-14T20:35:06.673Z",
+      "ms": 1794688506673,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 13.13
+    },
+    {
+      "name": "frame-0039.png",
+      "at": "2026-11-14T20:35:06.877Z",
+      "ms": 1794688506877,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 13.33
+    },
+    {
+      "name": "frame-0040.png",
+      "at": "2026-11-14T20:35:07.081Z",
+      "ms": 1794688507081,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 13.54
+    },
+    {
+      "name": "frame-0041.png",
+      "at": "2026-11-14T20:35:07.285Z",
+      "ms": 1794688507285,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 13.74
+    },
+    {
+      "name": "frame-0042.png",
+      "at": "2026-11-14T20:35:07.493Z",
+      "ms": 1794688507493,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 13.95
+    },
+    {
+      "name": "frame-0043.png",
+      "at": "2026-11-14T20:35:07.702Z",
+      "ms": 1794688507702,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 14.16
+    },
+    {
+      "name": "frame-0044.png",
+      "at": "2026-11-14T20:35:07.906Z",
+      "ms": 1794688507906,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 14.36
+    },
+    {
+      "name": "frame-0045.png",
+      "at": "2026-11-14T20:35:08.110Z",
+      "ms": 1794688508110,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 14.56
+    },
+    {
+      "name": "frame-0046.png",
+      "at": "2026-11-14T20:35:08.313Z",
+      "ms": 1794688508313,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 14.77
+    },
+    {
+      "name": "frame-0047.png",
+      "at": "2026-11-14T20:35:08.515Z",
+      "ms": 1794688508515,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 14.97
+    },
+    {
+      "name": "frame-0048.png",
+      "at": "2026-11-14T20:35:08.716Z",
+      "ms": 1794688508716,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 15.17
+    },
+    {
+      "name": "frame-0049.png",
+      "at": "2026-11-14T20:35:08.919Z",
+      "ms": 1794688508919,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 15.37
+    },
+    {
+      "name": "frame-0050.png",
+      "at": "2026-11-14T20:35:09.124Z",
+      "ms": 1794688509124,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 15.58
+    },
+    {
+      "name": "frame-0051.png",
+      "at": "2026-11-14T20:35:09.327Z",
+      "ms": 1794688509327,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 15.78
+    },
+    {
+      "name": "frame-0052.png",
+      "at": "2026-11-14T20:35:09.530Z",
+      "ms": 1794688509530,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 15.98
+    },
+    {
+      "name": "frame-0053.png",
+      "at": "2026-11-14T20:35:09.730Z",
+      "ms": 1794688509731,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 16.18
+    },
+    {
+      "name": "frame-0054.png",
+      "at": "2026-11-14T20:35:09.943Z",
+      "ms": 1794688509943,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 16.4
+    },
+    {
+      "name": "frame-0055.png",
+      "at": "2026-11-14T20:35:10.151Z",
+      "ms": 1794688510151,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 16.61
+    },
+    {
+      "name": "frame-0056.png",
+      "at": "2026-11-14T20:35:10.359Z",
+      "ms": 1794688510359,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 16.81
+    },
+    {
+      "name": "frame-0057.png",
+      "at": "2026-11-14T20:35:10.568Z",
+      "ms": 1794688510568,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 17.02
+    },
+    {
+      "name": "frame-0058.png",
+      "at": "2026-11-14T20:35:10.780Z",
+      "ms": 1794688510780,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 17.23
+    },
+    {
+      "name": "frame-0059.png",
+      "at": "2026-11-14T20:35:10.980Z",
+      "ms": 1794688510980,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 17.43
+    },
+    {
+      "name": "frame-0060.png",
+      "at": "2026-11-14T20:35:11.186Z",
+      "ms": 1794688511186,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 17.64
+    },
+    {
+      "name": "frame-0061.png",
+      "at": "2026-11-14T20:35:11.392Z",
+      "ms": 1794688511392,
+      "note": "INC-3856 is acked, not INC-3403 — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place",
+      "elapsedS": 17.85
+    },
+    {
+      "name": "frame-0062.png",
+      "at": "2026-11-14T20:35:11.405Z",
+      "ms": 1794688511405,
+      "note": "end of take",
+      "elapsedS": 17.86
+    }
+  ],
+  "outDir": "C:\\Users\\admin\\Desktop\\course\\show-me-when\\.tmp\\take-race6",
+  "build": {
+    "footer": "57e9500bbbb41978ca39a02c4ed37744de94f19d",
+    "meta": "57e9500bbbb41978ca39a02c4ed37744de94f19d"
+  },
+  "parked": {
+    "id": "INC-3403",
+    "xy": [
+      945,
+      181
+    ],
+    "rect": {
+      "x": 945,
+      "y": 181,
+      "w": 54,
+      "h": 35
+    },
+    "rowTopBefore": 159,
+    "at": "2026-11-14T20:34:55.274Z",
+    "frame": 6
+  },
+  "landed": {
+    "id": "INC-4544",
+    "openedAt": "2026-11-14T20:35:01.690Z",
+    "frame": 13,
+    "onCameraAt": "2026-11-14T20:35:01.595Z",
+    "atMs": 1794688501607,
+    "ageOnCameraS": -0.1
+  },
+  "pointer": {
+    "how": "W3C pointer actions: the pointer was moved onto INC-3403's Ack once, at 2026-11-14T20:34:55.274Z, and stayed there — 7 tremors, never aimed at again. The press is pointerDown/pointerUp in one sequence at those same coordinates, not element.click().",
+    "travelMs": 552,
+    "hoverMs": 6335,
+    "moves": 3,
+    "tremors": 7,
+    "rect": {
+      "x": 945,
+      "y": 181,
+      "w": 54,
+      "h": 35
+    },
+    "viewport": {
+      "dpr": 1,
+      "h": 815,
+      "w": 1280
+    },
+    "path": [
+      {
+        "kind": "move",
+        "x": 233,
+        "y": 49,
+        "ms": 1794688494722,
+        "frame": 3,
+        "at": "2026-11-14T20:34:54.712Z"
+      },
+      {
+        "kind": "move",
+        "x": 473,
+        "y": 93,
+        "ms": 1794688494874,
+        "frame": 4,
+        "at": "2026-11-14T20:34:54.865Z"
+      },
+      {
+        "kind": "move",
+        "x": 706,
+        "y": 140,
+        "ms": 1794688495024,
+        "frame": 5,
+        "at": "2026-11-14T20:34:55.015Z"
+      },
+      {
+        "kind": "rest",
+        "x": 945,
+        "y": 181,
+        "ms": 1794688495274,
+        "frame": 6,
+        "at": "2026-11-14T20:34:55.265Z"
+      },
+      {
+        "kind": "hover",
+        "x": 945,
+        "y": 181,
+        "ms": 1794688501609,
+        "frame": 13,
+        "at": "2026-11-14T20:35:01.609Z"
+      },
+      {
+        "kind": "press",
+        "x": 945,
+        "y": 181,
+        "ms": 1794688501699,
+        "frame": 14,
+        "at": "2026-11-14T20:35:01.699Z"
+      }
+    ],
+    "hoverEvents": 9,
+    "focusAfter": null,
+    "lookMoves": 11,
+    "lookMovesBeforeLand": 11,
+    "movesLastSecond": 2,
+    "parkedAt": "2026-11-14T20:34:55.274Z",
+    "parkedMs": 1794688495274,
+    "parkedFrame": 6,
+    "at": "2026-11-14T20:35:01.609Z"
+  },
+  "acked": {
+    "id": "INC-3856",
+    "at": "2026-11-14T20:35:01.687Z",
+    "ageAtClickS": 0,
+    "ageOnScreenS": -0.1,
+    "via": "pointer",
+    "trusted": true,
+    "hoverEvents": 9,
+    "scriptedClicks": 0,
+    "focusAfter": null,
+    "clickXY": [
+      945,
+      181
+    ]
+  },
+  "race": {
+    "meant": "INC-3403",
+    "meantRect": {
+      "x": 945,
+      "y": 181,
+      "w": 54,
+      "h": 35
+    },
+    "parkedAt": "2026-11-14T20:34:55.274Z",
+    "parkedFrame": 6,
+    "parkedXy": [
+      945,
+      181
+    ],
+    "tremors": 7,
+    "insertId": "INC-4544",
+    "insertAt": "2026-11-14T20:35:01.560Z",
+    "insertMs": 1794688501560,
+    "pressAfterInsertMs": 49,
+    "underPointerRow": "INC-3856",
+    "underPointerWhat": "acked",
+    "meantRowTopBefore": 159,
+    "meantRowTopAfter": 204,
+    "shiftPx": 45,
+    "meantAckedAfter": false,
+    "meantStillOffersAck": true,
+    "clickTarget": "ack",
+    "inserts": [
+      {
+        "at": "2026-11-14T20:34:53.611Z",
+        "h": 45,
+        "id": "INC-3403",
+        "ms": 1794688493611,
+        "top": 159
+      },
+      {
+        "at": "2026-11-14T20:34:53.611Z",
+        "h": 45,
+        "id": "INC-9789",
+        "ms": 1794688493611,
+        "top": 204
+      },
+      {
+        "at": "2026-11-14T20:34:53.611Z",
+        "h": 45,
+        "id": "INC-9555",
+        "ms": 1794688493611,
+        "top": 249
+      },
+      {
+        "at": "2026-11-14T20:34:53.612Z",
+        "h": 45,
+        "id": "INC-1174",
+        "ms": 1794688493612,
+        "top": 294
+      },
+      {
+        "at": "2026-11-14T20:34:53.612Z",
+        "h": 45,
+        "id": "INC-1745",
+        "ms": 1794688493612,
+        "top": 339
+      },
+      {
+        "at": "2026-11-14T20:34:53.612Z",
+        "h": 45,
+        "id": "INC-3392",
+        "ms": 1794688493612,
+        "top": 384
+      },
+      {
+        "at": "2026-11-14T20:34:53.612Z",
+        "h": 45,
+        "id": "INC-4217",
+        "ms": 1794688493612,
+        "top": 429
+      },
+      {
+        "at": "2026-11-14T20:35:01.560Z",
+        "h": 45,
+        "id": "INC-4544",
+        "ms": 1794688501560,
+        "top": 114
+      }
+    ]
+  },
+  "expected": "INC-3403",
+  "got": [
+    "INC-3856"
+  ],
+  "receipt": "a1.64dgcIpPXrbyUP8F.GomuhSLMIuyuWTvYMdRc-ARSqwZupe7pHrEIpNASFIej98P1ANbmAbAqO05btf4a3hYrMCqTnb-AQlTrrrJJ5ebPkeiBhhnGPZEeAfUfzw8dqWOY5LqviQZl3l1SPQuIkoPngGLTB61sGfLLIZP6nHXoFm67B0ouf15EU1jbbgKWwVDzdy-1KQV_sV_vglvDjzg",
+  "changeFrame": 15,
+  "at": "00:08",
+  "atLanded": "00:08",
+  "atClicked": "00:08",
+  "landedFramesBefore": 12,
+  "finishedAt": "2026-11-14T20:35:11.415Z",
+  "sha": "57e9500bbbb41978ca39a02c4ed37744de94f19d",
+  "short": "57e9500bbbb4"
+}
