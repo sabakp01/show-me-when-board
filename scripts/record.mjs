@@ -155,8 +155,17 @@ async function pressAckLikeAPerson(id) {
     && Math.abs(e.x - at.x) <= Math.max(8, Math.round(at.w / 2))
     && Math.abs(e.y - at.y) <= Math.max(8, Math.round(at.h / 2)));
   const scripted = page.events.filter((e) => e.type === 'click' && !e.trusted).length;
+  // The pace this take actually moved at, measured from the camera's own frames — not a claim about
+  // what the script intended.
+  const frameOf = (step) => step ? take.frames[step.frame - 1] : null;
+  const restStep = stepNotes[0];
+  const hoverStep = stepNotes.find((s) => s.kind === 'hover');
+  const pressStep = stepNotes.find((s) => s.kind === 'press');
+  const travelMs = hoverStep && restStep ? frameOf(hoverStep).ms - frameOf(restStep).ms : null;
+  const hoverMs = pressStep && hoverStep ? frameOf(pressStep).ms - frameOf(hoverStep).ms : null;
   take.pointer = {
-    how: `W3C pointer actions at the button's own screen rect (pointerMove x${moves} with the camera running, ~0.3 s hover, pointerDown/Up) — not element.click()`,
+    how: `W3C pointer actions at the button's own screen rect: ${moves} pointerMove steps over ${travelMs} ms, then ${hoverMs} ms resting on the button, then pointerDown/Up in one sequence — not element.click()`,
+    travelMs, hoverMs, moves,
     rect: at, viewport: vp, path: stepNotes, hoverEvents: page.hovers, focusAfter: page.focus,
     at: new Date(pressedAtMs).toISOString(),
   };
