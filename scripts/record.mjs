@@ -67,6 +67,13 @@ function ffmpegRun(args, label, cwd) {
 
 const take = { flow, url, fps, startedAt: new Date().toISOString(), frames: [], outDir };
 
+// A hand is never still. WebDriver parks the pointer at (0,0) and leaves it there, so a recorder
+// that only moves the mouse once the row lands is a test waiting for the page to hold still. This
+// one keeps the pointer drifting over the list while it waits, and the reach to a new row continues
+// from wherever the pointer already stood: one motion, not a jump after the page settles.
+let pointerNow = { x: 0, y: 0 };
+const lookNotes = []; // every look-move, with when it happened
+
 // --- the run -------------------------------------------------------------------
 const frameMs = Math.round(1000 / fps);
 let frame = 0;
@@ -110,6 +117,20 @@ function watchPointerEvents() {
     return true;`);
 }
 
+// One drift over the list, like an eye moving down the rows. Kept clear of the right-hand edge,
+// where the Ack buttons live, so the wait does not hover the very button this take will press.
+async function lookAround() {
+  const vp = await ff.viewport();
+  const span = Math.max(90, Math.round(vp.h * 0.18));
+  const target = {
+    x: Math.round(vp.w * (0.22 + Math.random() * 0.33)),
+    y: Math.round(Math.min(vp.h - 60, Math.max(110, pointerNow.y + (Math.random() * 2 - 1) * span))),
+  };
+  await ff.moveTo(target.x, target.y, 170); // eased, so the pointer is in motion across frames
+  pointerNow = target;
+  lookNotes.push({ x: target.x, y: target.y, ms: Date.now(), at: new Date().toISOString(), frame });
+}
+
 async function pressAckLikeAPerson(id) {
   const at = await ff.js(`const li = document.querySelector('[data-testid="incident-row"][data-id="${id}"]');
     const b = li && li.querySelector('[data-testid="ack"]');
@@ -129,19 +150,20 @@ async function pressAckLikeAPerson(id) {
 
   const stepNotes = [];
   const step = async (label, x, y, kind) => { await grab(label); stepNotes.push({ kind, label, x, y, frame: take.frames.length }); };
-  // A person watching the list clicks a new row about a second after it appears. So the reach is short
-  // and few frames are grabbed between the row landing and the press: the press has to fall in the same
-  // second the row did, or the take does not show the board picking up a fresh incident at all.
-  const from = { x: Math.round(vp.w * 0.62), y: Math.min(vp.h - 24, at.y + 110) };
-  await ff.moveTo(from.x, from.y);
-  await step('pointer resting before the board', from.x, from.y, 'rest');
-  const moves = Number(opts.reach || 2); // pointerMove steps on the way — a short reach, not a crawl
+  // The pointer is already drifting over the list when the row appears, so the reach is the tail of
+  // that motion — it starts where the pointer stands, not at a spot picked for a screenshot. Each step
+  // is eased and jittered, and the button goes down inside the row's first second on the board.
+  const from = { ...pointerNow };
+  await step(`pointer where it already stood, mid-motion, at ${from.x},${from.y}`, from.x, from.y, 'rest');
+  const moves = Number(opts.reach || 4); // pointerMove steps on the way — eased, not teleported
   const restMs = Number(opts.hover || 120); // on the button before the button goes down
   for (let s = 1; s <= moves; s++) {
     const t = s / moves;
-    const x = Math.round(from.x + (at.x - from.x) * t);
+    const jitter = s === moves ? 0 : 9; // a hand misses its waypoints
+    const x = Math.round(from.x + (at.x - from.x) * t + (s === moves ? 0 : (Math.random() * 2 - 1) * jitter));
     const y = Math.round(from.y + (at.y - from.y) * t - 20 * Math.sin(Math.PI * t)); // a slight arc, like a hand
-    await ff.moveTo(x, y, 40);
+    await ff.moveTo(x, y, 80);
+    pointerNow = { x, y };
     if (s === moves) await step(`pointer on the Ack of ${id} — the button shows hover`, at.x, at.y, 'hover');
     else await step(`pointer moving to the Ack of ${id}`, x, y, 'move');
   }
@@ -169,6 +191,12 @@ async function pressAckLikeAPerson(id) {
     how: `W3C pointer actions at the button's own screen rect: ${moves} pointerMove steps over ${travelMs} ms, then ${hoverMs} ms resting on the button, then pointerDown/Up in one sequence — not element.click()`,
     travelMs, hoverMs, moves,
     rect: at, viewport: vp, path: stepNotes, hoverEvents: page.hovers, focusAfter: page.focus,
+    // Motion measured against the landing on this machine's clock: how many drift-moves the pointer
+    // made while the board was refreshing, how many of them before the row appeared, and how many in
+    // the last second before the button went down. A recorder that waits for the page to settle: 0.
+    lookMoves: lookNotes.length,
+    lookMovesBeforeLand: landed ? lookNotes.filter((n) => n.ms <= landed.atMs).length : lookNotes.length,
+    movesInLandingSecond: landed ? lookNotes.filter((n) => n.ms > pressedAtMs - 1000 && n.ms <= pressedAtMs).length : null,
     at: new Date(pressedAtMs).toISOString(),
   };
   if (!hit) {
@@ -259,6 +287,7 @@ try {
             openedAt: fresh.openedAt,
             frame,
             onCameraAt: take.frames[frame - 1].at,
+            atMs: Date.now(),
             ageOnCameraS: Number(((Date.now() - Date.parse(fresh.openedAt)) / 1000).toFixed(1)),
           };
           take.landed = landed;
@@ -308,7 +337,7 @@ try {
       else note = fresh.length ? `${fresh.length} incident(s) arrived` : 'watching the board refresh itself';
     }
 
-    const cost = Date.now() - spent;
+    // Looking at the board while waiting: the pointer moves every frame, so nothing here reads as a
     const pace = flow === 'ack-incident' && !clicked ? slowFps : fps; // slow while waiting, fast once it lands
     await sleep(Math.max(30, Math.round(1000 / pace) - cost));
   }
@@ -417,12 +446,17 @@ console.log(`take: expected ${take.expected || 'none'}; got ${Array.isArray(take
 if (take.pointer) {
   console.log(`take: pressed by pointer — ${take.pointer.how}`);
   console.log(`take: page reports isTrusted=${take.acked ? take.acked.trusted : 'n/a'}, ${take.pointer.hoverEvents} pointerover on that button, ${take.acked ? take.acked.scriptedClicks : 0} scripted clicks in the page, focus after: ${take.pointer.focusAfter || 'none'}`);
+  console.log(`take: pointer drift-moved ${take.pointer.lookMoves} times while waiting — ${take.pointer.lookMovesBeforeLand} before ${take.landed ? take.landed.id : 'the row'} landed, ${take.pointer.movesInLandingSecond} in the second before the button went down`);
 } else {
   console.log('take: no pointer press in this take');
 }
 const pressedLikeAPerson = !!take.pointer && !!take.acked && take.acked.via === 'pointer' && take.acked.trusted === true;
-const proofed = take.at && take.landed && take.acked && take.landed.id === take.expected && oneRow && pressedLikeAPerson;
+// What the course asked for and this lane can fail on its own, before anyone submits: the pointer was
+// already moving while the board changed, and the button went down in that row's first second.
+const movedWhileChanging = !!take.pointer && take.pointer.lookMovesBeforeLand >= 2 && take.pointer.movesInLandingSecond >= 1;
+const ackedInTime = !!take.acked && take.acked.ageAtClickS >= 0 && take.acked.ageAtClickS <= 1.5;
+const proofed = take.at && take.landed && take.acked && take.landed.id === take.expected && oneRow && pressedLikeAPerson && movedWhileChanging && ackedInTime;
 console.log(proofed
   ? `result: ok`
-  : `result: FAIL — ${!take.landed ? 'no incident landed on camera in this take' : !pressedLikeAPerson ? 'the ack was not pressed by a real pointer click the page reports as trusted' : !oneRow ? 'the new receipt is not on exactly the row this take meant' : 'no ack visible on screen'}`);
+  : `result: FAIL — ${!take.landed ? 'no incident landed on camera in this take' : !pressedLikeAPerson ? 'the ack was not pressed by a real pointer click the page reports as trusted' : !oneRow ? 'the new receipt is not on exactly the row this take meant' : !movedWhileChanging ? 'the pointer stood still while the board was changing — it moved only once the row landed' : !ackedInTime ? `the button went down ${take.acked.ageAtClickS}s after the row landed, not in its first second` : 'no ack visible on screen'}`);
 process.exit(proofed ? 0 : 1);
