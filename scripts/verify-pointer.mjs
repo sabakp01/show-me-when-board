@@ -35,6 +35,18 @@ check('arrival: the incident was absent from the board for the first frames, the
   !!take.landed && take.landed.id === take.expected
     && take.landedFramesBefore >= 1 && take.landed.frame === take.landedFramesBefore + 1,
   `landed=${take.landed && take.landed.id} absent for ${take.landedFramesBefore} frames, on screen at frame ${take.landed && take.landed.frame}`);
+// The course asked what the board was doing in the second the recording acked. A recorder that sits
+// still until the page settles and then clicks is a test, so the motion is read off the take here:
+// drift-moves before the row appeared, moves in the second the button went down, the row's age then.
+check('pace: the pointer was already moving while the board went on changing',
+  !!pointer && typeof pointer.lookMovesBeforeLand === 'number' && pointer.lookMovesBeforeLand >= 2,
+  `${pointer && pointer.lookMovesBeforeLand} drift-moves over the list before ${take.expected} landed, ${pointer && pointer.lookMoves} across the wait`);
+check('pace: the pointer moved again in the second the button went down',
+  !!pointer && typeof pointer.movesLastSecond === 'number' && pointer.movesLastSecond >= 2,
+  `${pointer && pointer.movesLastSecond} pointer moves in the last second before the press`);
+check('pace: the button went down in the row\'s first second on the board',
+  !!take.acked && typeof take.acked.ageAtClickS === 'number' && take.acked.ageAtClickS >= 0 && take.acked.ageAtClickS <= 1.5,
+  `${take.acked && take.acked.ageAtClickS}s from the API opening it to the button going down`);
 
 check('pointer: the ack went through pointer actions, not a scripted click',
   acked.via === 'pointer', `via=${acked.via}`);

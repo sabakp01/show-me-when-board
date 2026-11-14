@@ -149,7 +149,7 @@ async function pressAckLikeAPerson(id) {
   }
 
   const stepNotes = [];
-  const step = async (label, x, y, kind) => { await grab(label); stepNotes.push({ kind, label, x, y, frame: take.frames.length }); };
+  const step = async (label, x, y, kind) => { await grab(label); stepNotes.push({ kind, label, x, y, ms: Date.now(), frame: take.frames.length }); };
   // The pointer is already drifting over the list when the row appears, so the reach is the tail of
   // that motion — it starts where the pointer stands, not at a spot picked for a screenshot. Each step
   // is eased and jittered, and the button goes down inside the row's first second on the board.
@@ -196,7 +196,7 @@ async function pressAckLikeAPerson(id) {
     // the last second before the button went down. A recorder that waits for the page to settle: 0.
     lookMoves: lookNotes.length,
     lookMovesBeforeLand: landed ? lookNotes.filter((n) => n.ms <= landed.atMs).length : lookNotes.length,
-    movesInLandingSecond: landed ? lookNotes.filter((n) => n.ms > pressedAtMs - 1000 && n.ms <= pressedAtMs).length : null,
+    movesLastSecond: lookNotes.concat(stepNotes).filter((n) => n.ms > pressedAtMs - 1000 && n.ms <= pressedAtMs).length,
     at: new Date(pressedAtMs).toISOString(),
   };
   if (!hit) {
@@ -338,6 +338,10 @@ try {
     }
 
     // Looking at the board while waiting: the pointer moves every frame, so nothing here reads as a
+    // still cursor waiting for the page to hold still before it acts.
+    if (flow === 'ack-incident' && !clicked && now.rows.length) await lookAround();
+
+    const cost = Date.now() - spent;
     const pace = flow === 'ack-incident' && !clicked ? slowFps : fps; // slow while waiting, fast once it lands
     await sleep(Math.max(30, Math.round(1000 / pace) - cost));
   }
@@ -446,14 +450,14 @@ console.log(`take: expected ${take.expected || 'none'}; got ${Array.isArray(take
 if (take.pointer) {
   console.log(`take: pressed by pointer — ${take.pointer.how}`);
   console.log(`take: page reports isTrusted=${take.acked ? take.acked.trusted : 'n/a'}, ${take.pointer.hoverEvents} pointerover on that button, ${take.acked ? take.acked.scriptedClicks : 0} scripted clicks in the page, focus after: ${take.pointer.focusAfter || 'none'}`);
-  console.log(`take: pointer drift-moved ${take.pointer.lookMoves} times while waiting — ${take.pointer.lookMovesBeforeLand} before ${take.landed ? take.landed.id : 'the row'} landed, ${take.pointer.movesInLandingSecond} in the second before the button went down`);
+  console.log(`take: pointer drift-moved ${take.pointer.lookMoves} times while waiting — ${take.pointer.lookMovesBeforeLand} before ${take.landed ? take.landed.id : 'the row'} landed, ${take.pointer.movesLastSecond} moves in the last second before the button went down`);
 } else {
   console.log('take: no pointer press in this take');
 }
 const pressedLikeAPerson = !!take.pointer && !!take.acked && take.acked.via === 'pointer' && take.acked.trusted === true;
 // What the course asked for and this lane can fail on its own, before anyone submits: the pointer was
 // already moving while the board changed, and the button went down in that row's first second.
-const movedWhileChanging = !!take.pointer && take.pointer.lookMovesBeforeLand >= 2 && take.pointer.movesInLandingSecond >= 1;
+const movedWhileChanging = !!take.pointer && take.pointer.lookMovesBeforeLand >= 2 && take.pointer.movesLastSecond >= 2;
 const ackedInTime = !!take.acked && take.acked.ageAtClickS >= 0 && take.acked.ageAtClickS <= 1.5;
 const proofed = take.at && take.landed && take.acked && take.landed.id === take.expected && oneRow && pressedLikeAPerson && movedWhileChanging && ackedInTime;
 console.log(proofed
