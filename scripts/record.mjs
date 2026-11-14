@@ -129,24 +129,26 @@ async function pressAckLikeAPerson(id) {
 
   const stepNotes = [];
   const step = async (label, x, y, kind) => { await grab(label); stepNotes.push({ kind, label, x, y, frame: take.frames.length }); };
-  const from = { x: Math.round(vp.w * 0.62), y: Math.min(vp.h - 24, at.y + 170) };
+  // A person watching the list clicks a new row about a second after it appears. So the reach is short
+  // and few frames are grabbed between the row landing and the press: the press has to fall in the same
+  // second the row did, or the take does not show the board picking up a fresh incident at all.
+  const from = { x: Math.round(vp.w * 0.62), y: Math.min(vp.h - 24, at.y + 110) };
   await ff.moveTo(from.x, from.y);
   await step('pointer resting before the board', from.x, from.y, 'rest');
-  await sleep(400); // a person reads the row before reaching for it
-  const moves = 5;
+  const moves = Number(opts.reach || 2); // pointerMove steps on the way — a short reach, not a crawl
+  const restMs = Number(opts.hover || 120); // on the button before the button goes down
   for (let s = 1; s <= moves; s++) {
     const t = s / moves;
     const x = Math.round(from.x + (at.x - from.x) * t);
-    const y = Math.round(from.y + (at.y - from.y) * t - 30 * Math.sin(Math.PI * t)); // a slight arc, like a hand
-    await ff.moveTo(x, y, 130);
-    await step(`pointer moving to the Ack of ${id}`, x, y, 'move');
-    await sleep(160);
+    const y = Math.round(from.y + (at.y - from.y) * t - 20 * Math.sin(Math.PI * t)); // a slight arc, like a hand
+    await ff.moveTo(x, y, 40);
+    if (s === moves) await step(`pointer on the Ack of ${id} — the button shows hover`, at.x, at.y, 'hover');
+    else await step(`pointer moving to the Ack of ${id}`, x, y, 'move');
   }
-  await sleep(550); // and looks at the button before pressing it; the hover state is on camera here
-  await step(`pointer on the Ack of ${id} — the button shows hover`, at.x, at.y, 'hover');
+  await sleep(restMs); // the button's hover state is on camera in this span
   const pressedAtMs = Date.now();
   await ff.press(at.x, at.y);
-  await sleep(220);
+  await sleep(150);
   await step(`primary button pressed and released on the Ack of ${id}`, at.x, at.y, 'press');
 
   const page = await ff.js(`return { events: window.__takeEvents || [], hovers: window.__takeHovers || 0,
