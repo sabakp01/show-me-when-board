@@ -283,6 +283,7 @@ async function pressWhereIParked() {
     scriptedClicks: (after.scriptedAfter || 0) - (scriptedBefore || 0),
     clickedId: after.underRow,
     race: {
+      mode: opts.race || null, // the flag this take was run with, so a report can name it instead of guessing
       meant: park.meant, meantRect: park.rect, parkedAt: park.at, parkedFrame: park.frame,
       parkedXy: [park.x, park.y], tremors: park.moves,
       insertId: insert ? insert.id : null, insertAt: insert ? insert.at : null,
