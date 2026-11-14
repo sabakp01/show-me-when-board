@@ -32,6 +32,20 @@ if (!['ack-incident', 'watch-board'].includes(flow)) {
   process.exit(2);
 }
 const fps = Math.max(1, Number(opts.fps || 5));
+// --race parked turns this take into an ack race. What makes it a race and not a staged click: the
+// pointer parks on the Ack button of a row that is ALREADY on the board, and the coordinates of that
+// button are measured once and never aimed at again. The board keeps refreshing on its own; when the
+// next incident opens, the app's own merge inserts a row at the top and every row below it slides
+// down, so another incident's Ack button ends up under the pointer. The press goes down at the parked
+// coordinates, and which row carries the receipt afterwards is read off the board. `expected` is the
+// row the hand rested on; `got` is the row the board acked. The recorder does not move the list, does
+// not fire an event from script and does not pick which row gets acked — it reads the page, and presses
+// the mouse where the hand was already lying.
+const race = opts.race === 'parked';
+if (race && flow !== 'ack-incident') {
+  console.error('record: --race parked needs --flow ack-incident');
+  process.exit(2);
+}
 // Waiting for an incident to land takes minutes; a take nobody wants to sit through proves nothing
 // either. So the camera runs slow (1 frame/s) while it waits and switches to `fps` the moment there
 // is something to see. Each frame carries its real timestamp, and the video is cut at those times,
@@ -73,6 +87,7 @@ const take = { flow, url, fps, startedAt: new Date().toISOString(), frames: [], 
 // from wherever the pointer already stood: one motion, not a jump after the page settles.
 let pointerNow = { x: 0, y: 0 };
 const lookNotes = []; // every look-move, with when it happened
+const pointerPath = []; // the steps the video draws a ring for: rest, tremor, hover, press
 
 // --- the run -------------------------------------------------------------------
 const frameMs = Math.round(1000 / fps);
@@ -114,6 +129,20 @@ function watchPointerEvents() {
     document.addEventListener('click', (e) => {
       window.__takeEvents.push({ type: 'click', trusted: e.isTrusted, detail: e.detail, x: Math.round(e.clientX), y: Math.round(e.clientY), target: testid(e.target), at: stamp() });
     }, true);
+    // When the board's own refresh puts a row into the list, that instant is stamped here. It watches
+    // the page and changes nothing in it: a MutationObserver sees the node the app itself inserted.
+    window.__takeInserts = [];
+    const ol = document.querySelector('[data-testid="incident-list"]');
+    if (ol && window.MutationObserver) {
+      new MutationObserver((muts) => {
+        for (const m of muts) for (const n of m.addedNodes) {
+          if (n && n.dataset && n.dataset.id) {
+            const r = n.getBoundingClientRect();
+            window.__takeInserts.push({ id: n.dataset.id, at: stamp(), ms: Date.now(), top: Math.round(r.top), h: Math.round(r.height) });
+          }
+        }
+      }).observe(ol, { childList: true });
+    }
     return true;`);
 }
 
@@ -130,6 +159,145 @@ async function lookAround() {
   pointerNow = target;
   lookNotes.push({ x: target.x, y: target.y, ms: Date.now(), at: new Date().toISOString(), frame });
 }
+
+// The hand goes to a row that is already on the board and stays there. The button's own rectangle is
+// measured once, reached from wherever the pointer stands, and after that nothing is re-aimed: when a
+// row arrives above this one, another incident's Ack button is what sits under these coordinates, and a
+// hand resting here presses that one.
+async function parkOnRow() {
+  // The second row down, when the board has one: parked on the top row, a slide would leave the hand
+  // on the Ack of the incident that just appeared, and that reads as aim rather than as a race.
+  const row = await ff.js(`const all = [...document.querySelectorAll('[data-testid="incident-row"]')];
+    const li = all[1] || all[0];
+    if (!li) return null;
+    const b = li.querySelector('[data-testid="ack"]');
+    if (!b) return null;
+    const r = b.getBoundingClientRect();
+    if (r.top < 0 || r.bottom > window.innerHeight) return null;
+    return { id: li.dataset.id, x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2),
+      w: Math.round(r.width), h: Math.round(r.height), rowTop: Math.round(li.getBoundingClientRect().top) };`);
+  if (!row) return null;
+  const from = { x: pointerNow.x, y: pointerNow.y };
+  for (let k = 1; k <= 4; k++) {
+    const t = k / 4;
+    const x = Math.round(from.x + (row.x - from.x) * t + (k < 4 ? Math.random() * 10 - 5 : 0));
+    const y = Math.round(from.y + (row.y - from.y) * t + (k < 4 ? Math.random() * 8 - 4 : 0));
+    await ff.moveTo(x, y, k === 4 ? 220 : 120);
+    pointerNow = { x, y };
+    const at = new Date().toISOString();
+    lookNotes.push({ x, y, ms: Date.now(), at, frame, reach: true });
+    // The reach is on camera and on the timeline: the video has to show a hand arriving at this button,
+    // not a cursor that was always there. Every step grabs its own frame, so its ring has a real span.
+    await grab(k === 4 ? `pointer rests on ${row.id}'s Ack at ${row.x},${row.y}` : `pointer moving to ${row.id}'s Ack at ${x},${y}`);
+    pointerPath.push({ kind: k === 4 ? 'rest' : 'move', x, y, ms: Date.now(), frame: take.frames.length, at });
+  }
+  park = { meant: row.id, x: row.x, y: row.y, rect: { x: row.x, y: row.y, w: row.w, h: row.h },
+    rowTopBefore: row.rowTop, atMs: Date.now(), at: new Date().toISOString(), frame, moves: 0,
+    lastRingFrame: take.frames.length };
+  take.parked = { id: park.meant, xy: [park.x, park.y], rect: park.rect,
+    rowTopBefore: park.rowTopBefore, at: park.at, frame: take.frames.length };
+  return park;
+}
+
+// A resting hand is not a frozen one: a couple of pixels of tremor, one way then back, always around
+// the same point. The coordinates that get pressed are the coordinates that were measured.
+async function tremorOnButton() {
+  if (!park) return;
+  const even = park.moves % 2 === 0;
+  const x = park.x + (even ? 2 : -2);
+  const y = park.y + (even ? -1 : 1);
+  await ff.moveTo(x, y, 90);
+  pointerNow = { x, y };
+  const at = new Date().toISOString();
+  lookNotes.push({ x, y, ms: Date.now(), at, frame, tremor: true });
+  park.moves++;
+  // Every 15th frame of the wait leaves a ring in the video: over a wait that runs minutes that is
+  // enough to show the hand lying on this button the whole time, without a thousand drawbox filters.
+  if (take.frames.length - (park.lastRingFrame || 0) >= 15) {
+    park.lastRingFrame = take.frames.length;
+    pointerPath.push({ kind: 'move', x, y, ms: Date.now(), frame: take.frames.length, at });
+  }
+}
+
+// The press, and the reading of what it hit. Nothing here re-measures the meant row: the coordinates
+// are the ones parked on, taken before the list moved. Which row the board acked, whether the meant row
+// still offers its button, how far the row slid — every one of those is read off the page afterwards.
+async function pressWhereIParked() {
+  if (!park) return { ok: false, why: 'the pointer never parked on a row' };
+  const sel = `[data-testid="incident-row"][data-id="${park.meant}"]`;
+  const scriptedBefore = await ff.js('return window.__takeEvents.filter((ev) => ev.type === "click" && !ev.trusted).length;');
+  // The hand is still where it was put: `park.x, park.y` were read off the board before this row
+  // existed, and nothing here measures or aims at anything again. hover = the whole rest on the button.
+  pointerPath.push({ kind: 'hover', x: park.x, y: park.y, ms: Date.now(), frame: take.frames.length, at: new Date().toISOString() });
+  const pressedAtMs = Date.now();
+  await ff.press(park.x, park.y, 70);
+  await grab(`primary button down and up at ${park.x},${park.y} — the coordinates parked at ${park.at}`);
+  pointerPath.push({ kind: 'press', x: park.x, y: park.y, ms: Date.now(), frame: take.frames.length, at: new Date().toISOString() });
+  await sleep(150);
+  const after = await ff.js(`const tag = (el) => { const c = el && el.closest ? el.closest('[data-testid]') : null;
+      return c ? c.getAttribute('data-testid') : (el ? el.tagName : null); };
+    const el = document.elementFromPoint(${park.x}, ${park.y});
+    const under = el && el.closest ? el.closest('[data-testid="incident-row"]') : null;
+    const meant = document.querySelector('${sel}');
+    const clicks = window.__takeEvents.filter((ev) => ev.type === 'click' && ev.trusted && ev.x === ${park.x} && ev.y === ${park.y});
+    return {
+      underRow: under ? under.dataset.id : null,
+      underWhat: tag(el),
+      meantTop: meant ? Math.round(meant.getBoundingClientRect().top) : null,
+      meantAcked: meant ? !!meant.querySelector('[data-testid="acked"]') : null,
+      meantHasAck: meant ? !!meant.querySelector('[data-testid="ack"]') : null,
+      click: clicks.length ? clicks[clicks.length - 1] : null,
+      inserts: window.__takeInserts || [],
+      hovers: window.__takeHovers,
+      focus: document.activeElement && document.activeElement.getAttribute ? document.activeElement.getAttribute('data-testid') : null,
+      scriptedAfter: window.__takeEvents.filter((ev) => ev.type === 'click' && !ev.trusted).length };`);
+  const hit = after.click;
+  if (!hit) return { ok: false, why: `no click reached the page at ${park.x},${park.y}` };
+  // Only a row this take had never seen counts as the arrival that slid the list: the observer also
+  // fires when the app re-renders a row it already had, and that is not a new incident.
+  const arrivals = (after.inserts || []).filter((i) => i.id !== park.meant && (!initialIds || !initialIds.has(i.id)));
+  const insert = arrivals[arrivals.length - 1] || null;
+  const vp = await ff.viewport();
+  const firstStep = pointerPath[0]; // the pointer's first recorded move on the way to this button
+  const pressStep = pointerPath[pointerPath.length - 1];
+  take.pointer = {
+    how: `W3C pointer actions: the pointer was moved onto ${park.meant}'s Ack once, at ${park.at}, and stayed there — ${park.moves} tremors, never aimed at again. The press is pointerDown/pointerUp in one sequence at those same coordinates, not element.click().`,
+    travelMs: park.atMs - firstStep.ms, // the hand arriving at the button: first step recorded, to parking
+
+    hoverMs: pressedAtMs - park.atMs, // how long it rested there before the button went down
+    moves: pointerPath.filter((s) => s.kind === 'move').length,
+    tremors: park.moves,
+    rect: { x: park.x, y: park.y, w: park.rect.w, h: park.rect.h },
+    viewport: vp, path: pointerPath, hoverEvents: after.hovers, focusAfter: after.focus,
+    // Motion read off the take's own clock: drift-moves while the board refreshed, how many before the
+    // new row appeared, and how many in the last second before the button went down.
+    lookMoves: lookNotes.length,
+    lookMovesBeforeLand: landed ? lookNotes.filter((n) => n.ms <= landed.atMs).length : lookNotes.length,
+    movesLastSecond: lookNotes.concat(pointerPath).filter((n) => n.ms > pressedAtMs - 1000 && n.ms <= pressedAtMs).length,
+    parkedAt: park.at, parkedMs: park.atMs, parkedFrame: park.frame,
+    at: new Date(pressedAtMs).toISOString(),
+  };
+  return {
+    ok: true, at: hit.at, pressedAtMs, trusted: hit.trusted === true, x: hit.x, y: hit.y,
+    hovers: after.hovers, focus: after.focus,
+    scriptedClicks: (after.scriptedAfter || 0) - (scriptedBefore || 0),
+    clickedId: after.underRow,
+    race: {
+      meant: park.meant, meantRect: park.rect, parkedAt: park.at, parkedFrame: park.frame,
+      parkedXy: [park.x, park.y], tremors: park.moves,
+      insertId: insert ? insert.id : null, insertAt: insert ? insert.at : null,
+      insertMs: insert ? insert.ms : null,
+      pressAfterInsertMs: insert ? pressedAtMs - insert.ms : null,
+      underPointerRow: after.underRow, underPointerWhat: after.underWhat,
+      meantRowTopBefore: park.rowTopBefore, meantRowTopAfter: after.meantTop,
+      shiftPx: after.meantTop === null ? null : after.meantTop - park.rowTopBefore,
+      meantAckedAfter: after.meantAcked, meantStillOffersAck: after.meantHasAck,
+      clickTarget: hit.target,
+      inserts: (after.inserts || []).slice(-8),
+    },
+  };
+}
+
 
 async function pressAckLikeAPerson(id) {
   const at = await ff.js(`const li = document.querySelector('[data-testid="incident-row"][data-id="${id}"]');
@@ -231,6 +399,9 @@ const maxFrames = 30000; // a guard against a runaway loop, not the plan
 let statusBefore = '';
 let initialIds = null; // ids on screen when the camera opened — a landing is a row outside this set
 let landed = null; // the incident that arrived on camera, and when
+let park = null; // race mode: the row the hand rests on, its button rect, the coordinates it presses
+let clickDeadline = Infinity; // the board has to answer the press within this long, or the take stops
+
 let expected = null; // the incident this take means to ack: the one that landed
 let got = null; // the incident the board actually shows acked, with a receipt it did not have before
 
@@ -239,6 +410,15 @@ try {
   await ff.start();
   await ff.url(url);
   await watchPointerEvents();
+  // Which build the camera is looking at. <meta name="build"> is the very element scripts/verify.mjs
+  // compares with the sha the deploy reports, so the take and the gate name the same build by
+  // construction. A take that does not name its page cannot be repeated: nobody would know which build
+  // the camera actually saw, and "it runs" would be a claim about nothing.
+  take.build = await ff.js(`return {
+    meta: (document.querySelector('meta[name="build"]') || {}).content || null,
+    footer: (document.querySelector('[data-testid="build-sha"]') || {}).textContent
+      ? document.querySelector('[data-testid="build-sha"]').textContent.trim() : null,
+  };`).catch(() => null);
 
   for (let i = 0; i < maxFrames; i++) {
     if (!clicked && Date.now() > waitUntil) {
@@ -246,6 +426,10 @@ try {
       break;
     }
     const spent = Date.now();
+    if (race && clicked && !changeFrame && Date.now() > clickDeadline) {
+      note = `the press at ${clicked.clickXY.join(',')} got no receipt within 20s`;
+      break;
+    }
     await grab(note);
     if (firstAtMs === null) firstAtMs = take.frames[0].ms;
 
@@ -253,6 +437,7 @@ try {
       rows: [...document.querySelectorAll('[data-testid="incident-row"]')].map(li => ({
         id: li.dataset.id,
         acked: !!li.querySelector('[data-testid="acked"]'),
+        hasAck: !!li.querySelector('[data-testid="ack"]'),
         openedAt: (li.querySelector('time') || {}).getAttribute
           ? li.querySelector('time').getAttribute('datetime') : null,
         receipt: (li.querySelector('[data-testid="acked"]') || {}).getAttribute
@@ -276,10 +461,16 @@ try {
       if (!clicked) {
         const fresh = arrivals.find((r) => !r.acked);
         if (!fresh) {
+          // Race mode: the hand goes to a row that is already here and stays there, so the board itself
+          // has to be what changes what lies under the pointer.
+          if (race && now.rows.length && !park) await parkOnRow();
           const watchedS = firstAtMs ? Math.round((take.frames[frame - 1].ms - firstAtMs) / 1000) : 0;
-          note = now.rows.length
-            ? `${now.rows.length} incidents on the board, none new yet — watching ${watchedS}s of ${watchS}s`
-            : 'waiting for the board to answer';
+          note = race && park
+            ? `${now.rows.length} incidents on the board; the pointer rests on ${park.meant}'s Ack and only trembles — ${watchedS}s of ${watchS}s waiting for the board to move a row under it`
+            : now.rows.length
+              ? `${now.rows.length} incidents on the board, none new yet — watching ${watchedS}s of ${watchS}s`
+              : 'waiting for the board to answer';
+
         } else {
           // This row was not on screen when the camera opened: it landed on camera. Ack it now.
           landed = {
@@ -291,40 +482,68 @@ try {
             ageOnCameraS: Number(((Date.now() - Date.parse(fresh.openedAt)) / 1000).toFixed(1)),
           };
           take.landed = landed;
-          const press = await pressAckLikeAPerson(fresh.id);
+          const press = race ? await pressWhereIParked() : await pressAckLikeAPerson(fresh.id);
           if (press.ok) {
             // The honest age: from the incident opening to the button actually going down, which is a
             // few seconds after the row first showed — the pointer had to travel to it.
             const ageAtPress = Number(((Date.parse(press.at) - Date.parse(fresh.openedAt)) / 1000).toFixed(1));
             clicked = {
-              id: fresh.id, at: press.at, ageAtClickS: ageAtPress, ageOnScreenS: landed.ageOnCameraS,
+              id: race ? press.clickedId : fresh.id,
+              at: press.at, ageAtClickS: ageAtPress, ageOnScreenS: landed.ageOnCameraS,
               via: 'pointer', trusted: press.trusted, hoverEvents: press.hovers,
               scriptedClicks: press.scriptedClicks, focusAfter: press.focus, clickXY: [press.x, press.y],
             };
             take.acked = clicked;
-            note = `${fresh.id} opened ${landed.ageOnCameraS}s ago and landed on camera — the pointer moved onto its Ack and pressed it ${ageAtPress}s after it opened`;
+            if (race) take.race = press.race || null;
+            clickDeadline = (press.pressedAtMs || Date.now()) + 20000;
+
+            note = race
+              ? `the Ack at ${park.x},${park.y} went down — those are ${park.meant}'s coordinates, measured before ${fresh.id} arrived, and the press is ${ageAtPress}s after it opened`
+              : `${fresh.id} opened ${landed.ageOnCameraS}s ago and landed on camera — the pointer moved onto its Ack and pressed it ${ageAtPress}s after it opened`;
+
           } else {
             note = `${fresh.id} landed, but ${press.why} — this take stops here`;
             break;
           }
         }
+      } else if (!changeFrame && !race) {
+        // The race answers on its own terms: a click that left no receipt anywhere is the failure, not
+        // a frame to wait through. Park the take and let the gate below report it.
+        if (clicked && take.race) {
+          note = `clicked at ${clicked.clickXY.join(',')} at ${clicked.at} and no row carries a new receipt`;
+          break;
+        }
       } else if (!changeFrame) {
-        const row = now.rows.find((r) => r.id === clicked.id);
+        // The clean flow waits for the receipt on the row that was clicked. In the race the ack may
+        // have landed anywhere, so the change is any row carrying a receipt the board did not have.
+        const row = race ? newlyAcked[0] : now.rows.find((r) => r.id === clicked.id);
         if (row && row.acked && row.receipt && !receiptsBefore.has(row.receipt)) {
           changeFrame = frame;
           receipt = row.receipt;
-          // The row this take MEANT is the one that landed on camera. Who actually GOT the ack is read
-          // off the board: every row carrying a receipt the board did not have before the click.
-          expected = clicked.id;
+          // The row this take MEANT: in the race it is the row the hand rested on, not the one that
+          // arrived. Who actually GOT the ack is read off the board: every row carrying a receipt the
+          // board did not have before the click.
+          expected = race ? take.race.meant : clicked.id;
           got = newlyAcked.map((r) => r.id);
           take.expected = expected;
           take.got = got;
-          note = got.length === 1 && got[0] === expected
-            ? `${expected} shows acked — the new receipt is on that row and on no other`
-            : `new receipt on ${got.length ? got.join(', ') : 'no row'}; this take meant ${expected}`;
+          note = got.length !== 1
+            ? `new receipt on ${got.length ? got.join(', ') : 'no row'}; this take meant ${expected}`
+            : got[0] !== expected
+              ? `${got[0]} is acked, not ${expected} — the row meant had slid out from under the pointer, and the receipt sits on the row that took its place`
+              : `${expected} shows acked — the new receipt is on that row and on no other`;
+
         } else {
-          note = `waiting for ${clicked.id} to come back acked`;
+          note = race
+            ? `the Ack at ${clicked.clickXY.join(',')} went down and no row carries a new receipt yet`
+            : `waiting for ${clicked.id} to come back acked`;
         }
+      }
+      // The row this take meant has to still be there, still offering its Ack: the ack went elsewhere
+      // and nothing on the board says so.
+      if (race && take.race && changeFrame) {
+        const mr = now.rows.find((row) => row.id === take.race.meant);
+        if (mr) take.race.meantStillOffersAck = !mr.acked && mr.hasAck === true;
       }
       // Then keep the camera on the row through the board's own refreshes: the ack has to survive them.
       if (changeFrame && i >= changeFrame + tailFrames) break;
@@ -339,11 +558,30 @@ try {
 
     // Looking at the board while waiting: the pointer moves every frame, so nothing here reads as a
     // still cursor waiting for the page to hold still before it acts.
-    if (flow === 'ack-incident' && !clicked && now.rows.length) await lookAround();
+    if (race && !clicked && park) {
+      await tremorOnButton();
+    } else if (flow === 'ack-incident' && !clicked && now.rows.length) await lookAround();
 
     const cost = Date.now() - spent;
     const pace = flow === 'ack-incident' && !clicked ? slowFps : fps; // slow while waiting, fast once it lands
-    await sleep(Math.max(30, Math.round(1000 / pace) - cost));
+    const waitMs = Math.max(30, Math.round(1000 / pace) - cost);
+    if (race && !clicked && park && now.rows.length) {
+      // The hand rests on the button while the board refreshes on its own. The camera keeps its 1
+      // frame/s pace, but the list is re-read every 120 ms, so the press follows the board's insert
+      // closely instead of waiting for the next frame. Re-reading a page presses nothing: the board is
+      // the only thing here that moves the list.
+      const known = new Set(now.rows.map((row) => row.id));
+      const until = Date.now() + waitMs;
+      for (;;) {
+        await sleep(Math.min(120, Math.max(20, until - Date.now())));
+        if (Date.now() >= until) break;
+        const ids = await ff.js(`return [...document.querySelectorAll('[data-testid="incident-row"]')].map((li) => li.dataset.id);`);
+        if (ids.some((id) => !known.has(id))) break; // a row arrived: the next frame sees it, then presses
+      }
+      continue;
+    }
+    await sleep(waitMs);
+
   }
 
   await grab('end of take');
@@ -430,6 +668,18 @@ if (filters.length) args.push('-vf', filters.join(','));
 args.push('-r', '30', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', 'take.mp4');
 ffmpegRun(args, 'cut', outDir); // frames, list and font all stay relative to the take folder
 
+// A take has to name the page it was recorded against, or nobody can repeat it. Both places the page
+// prints its build are read off the page the camera watched; scripts/verify.mjs compares that meta with
+// the sha the deploy reports. If they disagree, the page is lying about its build and the take says so.
+take.sha = take.build && take.build.meta ? take.build.meta : null;
+take.short = take.sha ? take.sha.slice(0, 12) : null;
+if (take.build && take.build.meta && take.build.footer && take.build.footer !== take.build.meta) {
+  console.log(`take: the page's footer build ${take.build.footer} contradicts its meta ${take.build.meta}`);
+}
+console.log(take.sha
+  ? `take: the board under the camera is build ${take.short}`
+  : 'take: the board under the camera names NO build — this take cannot be pinned to a commit');
+
 writeFileSync(resolve(outDir, 'take.json'), `${JSON.stringify(take, null, 2)}\n`);
 
 const secs = take.frames.length ? take.frames[take.frames.length - 1].elapsedS : 0;
@@ -459,8 +709,42 @@ const pressedLikeAPerson = !!take.pointer && !!take.acked && take.acked.via === 
 // already moving while the board changed, and the button went down in that row's first second.
 const movedWhileChanging = !!take.pointer && take.pointer.lookMovesBeforeLand >= 2 && take.pointer.movesLastSecond >= 2;
 const ackedInTime = !!take.acked && take.acked.ageAtClickS >= 0 && take.acked.ageAtClickS <= 1.5;
-const proofed = take.at && take.landed && take.acked && take.landed.id === take.expected && oneRow && pressedLikeAPerson && movedWhileChanging && ackedInTime;
-console.log(proofed
-  ? `result: ok`
-  : `result: FAIL — ${!take.landed ? 'no incident landed on camera in this take' : !pressedLikeAPerson ? 'the ack was not pressed by a real pointer click the page reports as trusted' : !oneRow ? 'the new receipt is not on exactly the row this take meant' : !movedWhileChanging ? 'the pointer stood still while the board was changing — it moved only once the row landed' : !ackedInTime ? `the button went down ${take.acked.ageAtClickS}s after the row landed, not in its first second` : 'no ack visible on screen'}`);
+// The clean flow passes when the receipt sits on the row that landed. The race passes on the opposite:
+// the press went to the coordinates the hand was measured on, an Ack button took that click, a row had
+// just been inserted above, the meant row slid out from under the pointer and still offers its button —
+// and the new receipt is on the row that took its place, not on the row the hand rested on.
+const oneReceipt = Array.isArray(take.got) && take.got.length === 1 && !!take.expected;
+const rr = take.race;
+const parkedSpotPressed = !!rr && Array.isArray(rr.parkedXy) && !!take.acked && Array.isArray(take.acked.clickXY)
+  && rr.parkedXy[0] === take.acked.clickXY[0] && rr.parkedXy[1] === take.acked.clickXY[1]
+  && rr.clickTarget === 'ack';
+const rowSlidUnder = !!rr && Number.isFinite(rr.pressAfterInsertMs) && rr.pressAfterInsertMs >= 0 && rr.pressAfterInsertMs <= 1500
+  && (rr.shiftPx === null || rr.shiftPx >= 20) && rr.meantStillOffersAck === true
+  && rr.underPointerRow === (Array.isArray(take.got) ? take.got[0] : null);
+const wrongRow = oneReceipt && take.got[0] !== take.expected;
+const cleanProofed = !!take.at && !!take.landed && !!take.acked && take.landed.id === take.expected
+  && oneRow && pressedLikeAPerson && movedWhileChanging && ackedInTime;
+const raceProofed = race && !!take.at && !!take.landed && !!take.acked && wrongRow
+  && pressedLikeAPerson && movedWhileChanging && parkedSpotPressed && rowSlidUnder;
+const proofed = race ? raceProofed : cleanProofed;
+if (race && take.race) {
+  const r = take.race;
+  console.log(`take: the hand rested on ${r.meant}'s Ack at ${r.parkedXy.join(',')} from ${r.parkedAt} — ${r.tremors} tremors, the coordinates never re-aimed`);
+  console.log(`take: the board inserted ${r.insertId} at ${r.insertAt}; the button went down ${r.pressAfterInsertMs}ms later, at the same spot`);
+  console.log(`take: ${r.meant} slid ${r.shiftPx}px down out from under the pointer and still offers Ack (${r.meantStillOffersAck}); the click's own target was ${r.clickTarget} of ${r.underPointerRow}, the row under it now`);
+}
+const reasons = [];
+if (!take.at || !take.acked) reasons.push('no ack appeared on the board in this take');
+if (!pressedLikeAPerson) reasons.push('the ack was not pressed by a real pointer click the page reports as trusted');
+if (!movedWhileChanging) reasons.push('the pointer stood still while the board was changing');
+if (!oneReceipt) reasons.push('the new receipt is not on exactly one row');
+if (race) {
+  if (!wrongRow) reasons.push('the ack landed on the row the hand rested on — this take holds no race');
+  if (!parkedSpotPressed) reasons.push('the press did not go to the parked coordinates, or no Ack button took it');
+  if (!rowSlidUnder) reasons.push('no row was inserted under the pointer just before the press, or the meant row slid nowhere / lost its button');
+} else if (!ackedInTime) {
+  reasons.push(`the button went down ${take.acked && take.acked.ageAtClickS}s after the row landed, not in its first second`);
+}
+console.log(proofed ? 'result: ok' : `result: FAIL — ${reasons.join('; ')}`);
 process.exit(proofed ? 0 : 1);
+
